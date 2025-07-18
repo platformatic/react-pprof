@@ -1,0 +1,219 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build TypeScript
+      run: npm run build
+      
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+      
+    - name: Run Playwright tests
+      run: npm test
+      env:
+        CI: true
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report-node-${{ matrix.node-version }}
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 30
+        
+    - name: Upload screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-screenshots-node-${{ matrix.node-version }}
+        path: test-results/
+        retention-days: 30
+
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+      
+    - name: Run visual regression tests
+      run: npm run test:comprehensive
+      env:
+        CI: true
+        
+    - name: Upload visual diff artifacts
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: visual-regression-diffs
+        path: test-results/
+        retention-days: 30
+
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chromium
+      
+    - name: Run performance tests
+      run: |
+        npm run test:flamegraph -- --grep "Performance"
+        npm run test:integration -- --grep "Performance"
+      env:
+        CI: true
+        
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-results
+        path: |
+          playwright-report/
+          test-results/
+        retention-days: 30
+
+  cross-browser:
+    name: Cross-Browser Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install Playwright Browser
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+      
+    - name: Run cross-browser tests
+      run: npx playwright test --project=${{ matrix.browser }}
+      env:
+        CI: true
+        
+    - name: Upload browser-specific results
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: playwright-results-${{ matrix.browser }}
+        path: test-results/
+        retention-days: 30
+
+  build-storybook:
+    name: Build Storybook
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build Storybook
+      run: npm run build-storybook
+      
+    - name: Upload Storybook build
+      uses: actions/upload-artifact@v4
+      with:
+        name: storybook-build
+        path: storybook-static/
+        retention-days: 30
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [test, visual-regression, performance, cross-browser]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      
+    - name: Create test summary
+      run: |
+        echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Unit Tests | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Visual Regression | ${{ needs.visual-regression.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Performance | ${{ needs.performance.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Cross-Browser | ${{ needs.cross-browser.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Artifacts Generated:" >> $GITHUB_STEP_SUMMARY
+        echo "- Test reports and screenshots" >> $GITHUB_STEP_SUMMARY
+        echo "- Visual regression diffs (if any)" >> $GITHUB_STEP_SUMMARY
+        echo "- Performance benchmarks" >> $GITHUB_STEP_SUMMARY
+        echo "- Cross-browser compatibility results" >> $GITHUB_STEP_SUMMARY
