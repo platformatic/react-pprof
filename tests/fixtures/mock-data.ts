@@ -1,0 +1,102 @@
+// Mock data generation for tests - moved from src to keep src/ clean
+import { Profile, StringTable, ValueType, Sample, Location, Function, Line } from 'pprof-format'
+
+export function generateMockProfile(): Profile {
+  // Create string table
+  const stringTable = new StringTable()
+
+  // Function definitions
+  const functions = [
+    { name: 'main', file: 'main.go', lineRange: [10, 50] },
+    { name: 'app.Run', file: 'app/server.go', lineRange: [25, 100] },
+    { name: 'http.ListenAndServe', file: 'net/http/server.go', lineRange: [2500, 2600] },
+    { name: 'server.handleRequest', file: 'internal/server.go', lineRange: [45, 200] },
+    { name: 'handler.Process', file: 'handlers/process.go', lineRange: [15, 80] },
+    { name: 'db.Query', file: 'database/query.go', lineRange: [120, 180] },
+    { name: 'json.Marshal', file: 'encoding/json/encode.go', lineRange: [160, 220] },
+    { name: 'crypto.Hash', file: 'crypto/hash.go', lineRange: [35, 90] },
+    { name: 'sort.Sort', file: 'sort/sort.go', lineRange: [230, 280] },
+    { name: 'strings.Join', file: 'strings/strings.go', lineRange: [400, 450] },
+    { name: 'fmt.Sprintf', file: 'fmt/print.go', lineRange: [180, 240] },
+    { name: 'runtime.GC', file: 'runtime/mgc.go', lineRange: [1200, 1300] },
+  ]
+
+  // Create Function objects
+  const profileFunctions: Function[] = []
+  functions.forEach((func, i) => {
+    const funcId = i + 1
+    const nameIdx = stringTable.dedup(func.name)
+    const filenameIdx = stringTable.dedup(func.file)
+
+    profileFunctions.push(new Function({
+      id: funcId,
+      name: nameIdx,
+      filename: filenameIdx,
+      startLine: func.lineRange[0],
+    }))
+  })
+
+  // Create Location objects
+  const locations: Location[] = []
+  profileFunctions.forEach((func, i) => {
+    const locationId = i + 1
+    const lineNumber = functions[i].lineRange[0] + Math.floor(Math.random() * (functions[i].lineRange[1] - functions[i].lineRange[0]))
+
+    locations.push(new Location({
+      id: locationId,
+      line: [new Line({
+        functionId: func.id,
+        line: lineNumber,
+      })]
+    }))
+  })
+
+  // Generate sample call stacks
+  const samples: Sample[] = []
+
+  // Generate realistic call stacks
+  for (let i = 0; i < 100; i++) {
+    // Random stack depth 2-6
+    const stackDepth = Math.floor(Math.random() * 5) + 2
+    const locationIds: number[] = []
+
+    // Start with main function
+    locationIds.push(1) // main function
+
+    // Add random functions to create stack
+    for (let j = 1; j < stackDepth; j++) {
+      const randomFuncIdx = Math.floor(Math.random() * (functions.length - 1)) + 1
+      locationIds.push(randomFuncIdx + 1)
+    }
+
+    // Random sample value
+    const value = Math.floor(Math.random() * 50) + 1
+
+    samples.push(new Sample({
+      locationId: locationIds,
+      value: [value],
+    }))
+  }
+
+  // Create value types
+  const sampleType = [new ValueType({
+    type: stringTable.dedup('samples'),
+    unit: stringTable.dedup('count'),
+  })]
+
+  // Create the profile
+  return new Profile({
+    sampleType,
+    sample: samples,
+    location: locations,
+    function: profileFunctions,
+    stringTable,
+    timeNanos: BigInt(Date.now() * 1000000), // Current time in nanoseconds
+    durationNanos: 1000000000, // 1 second
+    periodType: new ValueType({
+      type: stringTable.dedup('cpu'),
+      unit: stringTable.dedup('nanoseconds'),
+    }),
+    period: 10000000, // 10ms
+  })
+}

@@ -1,0 +1,45 @@
+{
+  "env": {
+    "browser": true,
+    "es2024": true,
+    "node": true
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-unused-vars": "warn",
+    "no-undef": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    "eqeqeq": "error",
+    "no-duplicate-imports": "error",
+    "no-unreachable": "error",
+    "no-empty": "warn",
+    "curly": "error",
+    "no-extra-semi": "error",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-trailing-spaces": "error",
+    "no-multiple-empty-lines": "error",
+    "comma-dangle": ["error", "never"],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"]
+  },
+  "overrides": [
+    {
+      "files": ["*.stories.{ts,tsx}", "tests/**/*.{ts,tsx}"],
+      "rules": {
+        "no-console": "off",
+        "no-unused-vars": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/",
+    "storybook-static/",
+    "playwright-report/",
+    "test-results/",
+    "coverage/"
+  ]
+}
