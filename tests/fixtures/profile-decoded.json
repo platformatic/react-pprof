@@ -1,0 +1,866 @@
+{
+  "stringTable": {
+    "strings": [
+      "",
+      "sample",
+      "count",
+      "wall",
+      "nanoseconds",
+      "lazyllhttp",
+      "node:internal/deps/undici/undici",
+      "instantiate",
+      "processTicksAndRejections",
+      "node:internal/process/task_queues",
+      "emitListeningNT",
+      "node:net",
+      "emit",
+      "node:events",
+      "onceWrapper",
+      "(anonymous:L#10:C#21)",
+      "/Users/stephenbelanger/Code/platformatic/pprof-test/server.js",
+      "consoleCall",
+      "log",
+      "node:internal/console/constructor",
+      "value",
+      "get",
+      "getStdout",
+      "node:internal/bootstrap/switches/is_main_thread",
+      "createWritableStdioStream",
+      "WriteStream",
+      "node:tty",
+      "run",
+      "node:internal/modules/esm/module_job",
+      "evaluate",
+      "(anonymous:L#1:C#1)",
+      "Server.listen",
+      "listenInCluster",
+      "requireBuiltin",
+      "node:internal/bootstrap/realm",
+      "compileForInternalLoader",
+      "node:cluster",
+      "node:internal/cluster/primary",
+      "node:child_process",
+      "node:internal/child_process",
+      "loadAndTranslate",
+      "node:internal/modules/esm/loader",
+      "#translate",
+      "builtinStrategy",
+      "node:internal/modules/esm/translators",
+      "getESMFacade",
+      "(anonymous:L#358:C#15)",
+      "syncExports",
+      "getOwn",
+      "node:http",
+      "lazyUndici",
+      "__require",
+      "lib/web/fetch/index.js",
+      "lib/web/fetch/response.js",
+      "lib/web/fetch/body.js",
+      "lib/web/fetch/formdata.js",
+      "lib/web/fetch/file.js",
+      "node:internal/util",
+      "lib/web/fetch/headers.js",
+      "lib/global.js",
+      "lib/dispatcher/agent.js",
+      "lib/dispatcher/pool.js",
+      "lib/dispatcher/client.js",
+      "lib/dispatcher/client-h2.js",
+      "requireWithFallbackInDeps",
+      "node:http2",
+      "node:internal/http2/core",
+      "node:tls",
+      "lib/dispatcher/client-h1.js",
+      "lib/llhttp/constants.js",
+      "lib/core/util.js",
+      "lib/core/tree.js",
+      "insert",
+      "node:assert",
+      "node:internal/assert/assertion_error",
+      "node:internal/util/colors",
+      "refresh",
+      "getStderr",
+      "loadBuiltinModule",
+      "node:internal/modules/helpers",
+      "compileForPublicLoader",
+      "node:_http_agent",
+      "protoGetter",
+      "Node.js",
+      "Garbage Collection",
+      "node:internal/main/run_main_module",
+      "executeUserEntryPoint",
+      "node:internal/modules/run_main",
+      "runEntryPointWithESMLoader",
+      "asyncRunEntryPointWithESMLoader",
+      "(anonymous:L#175:C#32)",
+      "import",
+      "tracePromise",
+      "node:diagnostics_channel",
+      "onImport.tracePromise.__proto__",
+      "getModuleJobForImport",
+      "resolve",
+      "#cachedDefaultResolve",
+      "defaultResolve",
+      "node:internal/modules/esm/resolve",
+      "moduleResolve",
+      "finalizeResolution",
+      "set search",
+      "node:internal/url",
+      "#updateContext",
+      "prepareMainThreadExecution",
+      "node:internal/process/pre_execution",
+      "prepareExecution",
+      "setupUserModules",
+      "loadPreloadModules",
+      "(anonymous:L#1838:C#34)",
+      "node:internal/modules/cjs/loader",
+      "(anonymous:L#1303:C#36)",
+      "wrapModuleLoad",
+      "traceSync",
+      "(anonymous:L#1020:C#24)",
+      "(anonymous:L#1274:C#33)",
+      "(anonymous:L#1687:C#37)",
+      "(anonymous:L#1504:C#37)",
+      "/Users/stephenbelanger/Code/platformatic/pprof-test/node_modules/@datadog/pprof/out/src/index.js",
+      "start",
+      "/Users/stephenbelanger/Code/platformatic/pprof-test/node_modules/@datadog/pprof/out/src/time-profiler.js"
+    ]
+  },
+  "sampleType": [
+    {
+      "type": "sample",
+      "typeIndex": 1,
+      "unit": "count",
+      "unitIndex": 2
+    },
+    {
+      "type": "wall",
+      "typeIndex": 3,
+      "unit": "nanoseconds",
+      "unitIndex": 4
+    }
+  ],
+  "samples": [
+    {
+      "index": 0,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "2",
+        "1"
+      ],
+      "labels": []
+    },
+    {
+      "index": 1,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "14",
+        "13",
+        "12",
+        "11",
+        "10",
+        "9",
+        "8",
+        "7",
+        "6",
+        "5",
+        "4",
+        "3"
+      ],
+      "labels": []
+    },
+    {
+      "index": 2,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "21",
+        "20",
+        "25",
+        "21",
+        "20",
+        "24",
+        "21",
+        "20",
+        "23",
+        "21",
+        "20",
+        "22",
+        "21",
+        "20",
+        "19",
+        "18",
+        "17",
+        "16",
+        "15"
+      ],
+      "labels": []
+    },
+    {
+      "index": 3,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "21",
+        "20",
+        "34",
+        "33",
+        "32",
+        "31",
+        "30",
+        "16",
+        "29",
+        "28",
+        "27",
+        "26"
+      ],
+      "labels": []
+    },
+    {
+      "index": 4,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "36",
+        "35",
+        "21",
+        "20",
+        "34",
+        "33",
+        "32",
+        "31",
+        "30",
+        "16",
+        "29",
+        "28",
+        "27",
+        "26"
+      ],
+      "labels": []
+    },
+    {
+      "index": 5,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "21",
+        "20",
+        "42",
+        "41",
+        "36",
+        "40",
+        "36",
+        "39",
+        "36",
+        "38",
+        "36",
+        "37",
+        "36",
+        "35",
+        "21",
+        "20",
+        "34",
+        "33",
+        "32",
+        "31",
+        "30",
+        "16",
+        "29",
+        "28",
+        "27",
+        "26"
+      ],
+      "labels": []
+    },
+    {
+      "index": 6,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "36",
+        "43",
+        "36",
+        "38",
+        "36",
+        "37",
+        "36",
+        "35",
+        "21",
+        "20",
+        "34",
+        "33",
+        "32",
+        "31",
+        "30",
+        "16",
+        "29",
+        "28",
+        "27",
+        "26"
+      ],
+      "labels": []
+    },
+    {
+      "index": 7,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "21",
+        "20",
+        "52",
+        "21",
+        "20",
+        "51",
+        "21",
+        "20",
+        "50",
+        "21",
+        "20",
+        "49",
+        "48",
+        "36",
+        "47",
+        "36",
+        "46",
+        "36",
+        "45",
+        "36",
+        "44",
+        "36",
+        "35",
+        "21",
+        "20",
+        "34",
+        "33",
+        "32",
+        "31",
+        "30",
+        "16",
+        "29",
+        "28",
+        "27",
+        "26"
+      ],
+      "labels": []
+    },
+    {
+      "index": 8,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "54",
+        "36",
+        "53",
+        "36",
+        "47",
+        "36",
+        "46",
+        "36",
+        "45",
+        "36",
+        "44",
+        "36",
+        "35",
+        "21",
+        "20",
+        "34",
+        "33",
+        "32",
+        "31",
+        "30",
+        "16",
+        "29",
+        "28",
+        "27",
+        "26"
+      ],
+      "labels": []
+    },
+    {
+      "index": 9,
+      "values": [
+        "1",
+        "1315000"
+      ],
+      "locationIds": [
+        "57",
+        "56",
+        "36",
+        "55",
+        "36",
+        "47",
+        "36",
+        "46",
+        "36",
+        "45",
+        "36",
+        "44",
+        "36",
+        "35",
+        "21",
+        "20",
+        "34",
+        "33",
+        "32",
+        "31",
+        "30",
+        "16",
+        "29",
+        "28",
+        "27",
+        "26"
+      ],
+      "labels": []
+    }
+  ],
+  "locations": [
+    {
+      "id": "1",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "1",
+          "line": "5821"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "2",
+          "line": "0"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "3",
+          "line": "72"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "4",
+          "line": "1977"
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "5",
+          "line": "465"
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "6",
+          "line": "627"
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "7",
+          "line": "10"
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "8",
+          "line": "0"
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "9",
+          "line": "380"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "10",
+          "line": "333"
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "11",
+          "line": "210"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "12",
+          "line": "151"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "13",
+          "line": "50"
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "14",
+          "line": "88"
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "15",
+          "line": "262"
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "16",
+          "line": "0"
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "17",
+          "line": "1"
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "18",
+          "line": "2035"
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "19",
+          "line": "1984"
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "mappingId": "0",
+      "address": "0",
+      "lines": [
+        {
+          "functionId": "20",
+          "line": "421"
+        }
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "id": "1",
+      "name": "lazyllhttp",
+      "nameIndex": 5,
+      "systemName": "lazyllhttp",
+      "systemNameIndex": 5,
+      "filename": "node:internal/deps/undici/undici",
+      "filenameIndex": 6,
+      "startLine": "0"
+    },
+    {
+      "id": "2",
+      "name": "instantiate",
+      "nameIndex": 7,
+      "systemName": "instantiate",
+      "systemNameIndex": 7,
+      "filename": "",
+      "filenameIndex": 0,
+      "startLine": "0"
+    },
+    {
+      "id": "3",
+      "name": "processTicksAndRejections",
+      "nameIndex": 8,
+      "systemName": "processTicksAndRejections",
+      "systemNameIndex": 8,
+      "filename": "node:internal/process/task_queues",
+      "filenameIndex": 9,
+      "startLine": "0"
+    },
+    {
+      "id": "4",
+      "name": "emitListeningNT",
+      "nameIndex": 10,
+      "systemName": "emitListeningNT",
+      "systemNameIndex": 10,
+      "filename": "node:net",
+      "filenameIndex": 11,
+      "startLine": "0"
+    },
+    {
+      "id": "5",
+      "name": "emit",
+      "nameIndex": 12,
+      "systemName": "emit",
+      "systemNameIndex": 12,
+      "filename": "node:events",
+      "filenameIndex": 13,
+      "startLine": "0"
+    },
+    {
+      "id": "6",
+      "name": "onceWrapper",
+      "nameIndex": 14,
+      "systemName": "onceWrapper",
+      "systemNameIndex": 14,
+      "filename": "node:events",
+      "filenameIndex": 13,
+      "startLine": "0"
+    },
+    {
+      "id": "7",
+      "name": "(anonymous:L#10:C#21)",
+      "nameIndex": 15,
+      "systemName": "(anonymous:L#10:C#21)",
+      "systemNameIndex": 15,
+      "filename": "/Users/stephenbelanger/Code/platformatic/pprof-test/server.js",
+      "filenameIndex": 16,
+      "startLine": "0"
+    },
+    {
+      "id": "8",
+      "name": "consoleCall",
+      "nameIndex": 17,
+      "systemName": "consoleCall",
+      "systemNameIndex": 17,
+      "filename": "",
+      "filenameIndex": 0,
+      "startLine": "0"
+    },
+    {
+      "id": "9",
+      "name": "log",
+      "nameIndex": 18,
+      "systemName": "log",
+      "systemNameIndex": 18,
+      "filename": "node:internal/console/constructor",
+      "filenameIndex": 19,
+      "startLine": "0"
+    },
+    {
+      "id": "10",
+      "name": "value",
+      "nameIndex": 20,
+      "systemName": "value",
+      "systemNameIndex": 20,
+      "filename": "node:internal/console/constructor",
+      "filenameIndex": 19,
+      "startLine": "0"
+    },
+    {
+      "id": "11",
+      "name": "get",
+      "nameIndex": 21,
+      "systemName": "get",
+      "systemNameIndex": 21,
+      "filename": "node:internal/console/constructor",
+      "filenameIndex": 19,
+      "startLine": "0"
+    },
+    {
+      "id": "12",
+      "name": "getStdout",
+      "nameIndex": 22,
+      "systemName": "getStdout",
+      "systemNameIndex": 22,
+      "filename": "node:internal/bootstrap/switches/is_main_thread",
+      "filenameIndex": 23,
+      "startLine": "0"
+    },
+    {
+      "id": "13",
+      "name": "createWritableStdioStream",
+      "nameIndex": 24,
+      "systemName": "createWritableStdioStream",
+      "systemNameIndex": 24,
+      "filename": "node:internal/bootstrap/switches/is_main_thread",
+      "filenameIndex": 23,
+      "startLine": "0"
+    },
+    {
+      "id": "14",
+      "name": "WriteStream",
+      "nameIndex": 25,
+      "systemName": "WriteStream",
+      "systemNameIndex": 25,
+      "filename": "node:tty",
+      "filenameIndex": 26,
+      "startLine": "0"
+    },
+    {
+      "id": "15",
+      "name": "run",
+      "nameIndex": 27,
+      "systemName": "run",
+      "systemNameIndex": 27,
+      "filename": "node:internal/modules/esm/module_job",
+      "filenameIndex": 28,
+      "startLine": "0"
+    },
+    {
+      "id": "16",
+      "name": "evaluate",
+      "nameIndex": 29,
+      "systemName": "evaluate",
+      "systemNameIndex": 29,
+      "filename": "",
+      "filenameIndex": 0,
+      "startLine": "0"
+    },
+    {
+      "id": "17",
+      "name": "(anonymous:L#1:C#1)",
+      "nameIndex": 30,
+      "systemName": "(anonymous:L#1:C#1)",
+      "systemNameIndex": 30,
+      "filename": "/Users/stephenbelanger/Code/platformatic/pprof-test/server.js",
+      "filenameIndex": 16,
+      "startLine": "0"
+    },
+    {
+      "id": "18",
+      "name": "Server.listen",
+      "nameIndex": 31,
+      "systemName": "Server.listen",
+      "systemNameIndex": 31,
+      "filename": "node:net",
+      "filenameIndex": 11,
+      "startLine": "0"
+    },
+    {
+      "id": "19",
+      "name": "listenInCluster",
+      "nameIndex": 32,
+      "systemName": "listenInCluster",
+      "systemNameIndex": 32,
+      "filename": "node:net",
+      "filenameIndex": 11,
+      "startLine": "0"
+    },
+    {
+      "id": "20",
+      "name": "requireBuiltin",
+      "nameIndex": 33,
+      "systemName": "requireBuiltin",
+      "systemNameIndex": 33,
+      "filename": "node:internal/bootstrap/realm",
+      "filenameIndex": 34,
+      "startLine": "0"
+    }
+  ],
+  "summary": {
+    "numSamples": 15,
+    "numLocations": 101,
+    "numFunctions": 101,
+    "numMappings": 0,
+    "stringTableLength": 122
+  }
+}
