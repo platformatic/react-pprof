@@ -3,6 +3,7 @@
 const { parseArgs } = require('node:util')
 const fs = require('node:fs')
 const path = require('node:path')
+const zlib = require('node:zlib')
 
 // Parse command line arguments
 const { values: args, positionals } = parseArgs({
@@ -61,10 +62,22 @@ if (!fs.existsSync(bundlePath)) {
 // Read the pprof file
 let profileData
 try {
-  profileData = fs.readFileSync(pprofFile)
-  console.log(`Loaded pprof file: ${pprofFile} (${profileData.length} bytes)`)
+  const rawData = fs.readFileSync(pprofFile)
+  console.log(`Loaded pprof file: ${pprofFile} (${rawData.length} bytes)`)
+  
+  // Check if the file is gzipped (common with @datadog/pprof output)
+  const isGzipped = rawData[0] === 0x1f && rawData[1] === 0x8b
+  
+  if (isGzipped) {
+    console.log('File appears to be gzipped, decompressing...')
+    profileData = zlib.gunzipSync(rawData)
+    console.log(`Decompressed to ${profileData.length} bytes`)
+  } else {
+    console.log('File appears to be uncompressed')
+    profileData = rawData
+  }
 } catch (error) {
-  console.error(`Error reading pprof file: ${error.message}`)
+  console.error(`Error reading or decompressing pprof file: ${error.message}`)
   process.exit(1)
 }
 
