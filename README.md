@@ -16,6 +16,7 @@ A React component for visualizing pprof profiles using WebGL.
 - 🔧 **TypeScript support** with full type definitions
 - 🧪 **Comprehensive testing** with visual regression tests
 - ⚡ **High performance** optimized for large profile datasets
+- 💻 **Command Line Interface** for generating static HTML flamegraphs
 
 ## Installation
 
@@ -70,6 +71,73 @@ function App() {
 }
 ```
 
+## Command Line Interface (CLI)
+
+This package includes a CLI utility to generate static HTML flamegraphs from pprof files without requiring a running server.
+
+### Installation
+
+Install the CLI globally or use via npx:
+
+```bash
+# Install globally
+npm install -g @platformatic/react-pprof
+
+# Or use with npx (no installation required)
+npx @platformatic/react-pprof profile.pb
+```
+
+### CLI Usage
+
+```bash
+# Basic usage
+react-pprof profile.pb
+
+# Custom output file
+react-pprof -o flamegraph.html profile.pb
+
+# Help
+react-pprof --help
+```
+
+### Building CLI Templates
+
+Before using the CLI, build the static templates:
+
+```bash
+npm run build:cli
+```
+
+This generates optimized HTML templates and JavaScript bundles in the `cli-build/` directory.
+
+### Supported Profile Formats
+
+The CLI automatically handles both:
+- **Gzipped profiles**: Common with @datadog/pprof output (auto-detected)
+- **Uncompressed profiles**: Raw pprof binary data
+
+### Example Workflow
+
+```bash
+# 1. Generate a profile (see examples below)
+curl http://localhost:3000/profile > profile.pb
+
+# 2. Build CLI templates (one-time setup)
+npm run build:cli
+
+# 3. Generate static HTML flamegraph
+react-pprof profile.pb
+
+# 4. Open in browser
+open profile.html
+```
+
+The generated HTML includes:
+- Complete React flamegraph visualization
+- Interactive tooltips and stack details
+- WebGL-optimized rendering
+- All profile data embedded (no server required)
+
 ## Capturing pprof Profiles
 
 ### Using @datadog/pprof
@@ -112,6 +180,45 @@ fs.writeFile('cpu-profile.pprof', buf, (err) => {
   console.log('Profile saved to cpu-profile.pprof')
 })
 ```
+
+### Example Servers
+
+This repository includes example servers to demonstrate profile generation:
+
+#### Real Profiling Server (example-server.js)
+
+```bash
+# Start the real profiling server
+node example-server.js
+
+# Generate some load to profile
+curl http://localhost:3002/load
+curl http://localhost:3002/load
+curl http://localhost:3002/load
+
+# Download gzipped profile (automatically handled by CLI)
+curl http://localhost:3002/profile > real-profile.pb
+
+# Generate flamegraph
+react-pprof real-profile.pb
+```
+
+#### Synthetic Profile Server (simple-server.js)  
+
+For testing and demonstration, use the synthetic server that generates compatible pprof data:
+
+```bash
+# Start the synthetic server
+node simple-server.js
+
+# Download synthetic profile
+curl http://localhost:3001/profile > synthetic-profile.pb
+
+# Generate flamegraph
+react-pprof synthetic-profile.pb
+```
+
+The synthetic server creates realistic function hierarchies and CPU distributions for demonstration purposes.
 
 ## Components
 

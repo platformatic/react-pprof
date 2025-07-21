@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "React component for visualizing pprof with WebGL",
   "main": "dist/index.js",
+  "bin": {
+    "react-pprof": "./cli.js"
+  },
   "scripts": {
     "build": "tsc --noEmit && webpack --mode production",
+    "build:cli": "webpack --config webpack.cli.config.js",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
@@ -17,7 +21,8 @@
     "lint:fix": "oxlint --fix src/ tests/",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "example-server": "node example-server.js"
   },
   "keywords": [
     "pprof",
@@ -26,6 +31,7 @@
   "author": "Platformatic Inc. <oss@platformatic.dev> (http://platformatic.dev/)",
   "license": "MIT",
   "devDependencies": {
+    "@datadog/pprof": "^5.9.0",
     "@playwright/test": "^1.54.1",
     "@storybook/addon-docs": "^9.0.17",
     "@storybook/addon-onboarding": "^9.0.17",
