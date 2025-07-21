@@ -41,7 +41,7 @@ export function useFlameGraphRenderer(config: RendererConfig): UseFlameGraphRend
     secondaryColor = '#ffcc66',
     backgroundColor = '#1e1e1e',
     textColor = '#ffffff',
-    fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
     shadowOpacity = 0.3,
     selectedOpacity = 1.0,
     hoverOpacity = 0.9,

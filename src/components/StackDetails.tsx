@@ -37,7 +37,7 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
         color: textColor,
         padding: '20px',
         borderRadius: '8px',
-        fontFamily: 'monospace',
+        fontFamily: 'SF Mono, Monaco, Cascadia Code, Roboto Mono, Courier New, monospace',
         fontSize: '14px',
         display: 'flex',
         alignItems: 'center',
@@ -59,7 +59,7 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
       color: textColor,
       padding: '20px',
       borderRadius: '8px',
-      fontFamily: 'monospace',
+      fontFamily: 'SF Mono, Monaco, Cascadia Code, Roboto Mono, Courier New, monospace',
       fontSize: '14px',
       border: `1px solid ${primaryColor}20`,
       overflow: 'auto'

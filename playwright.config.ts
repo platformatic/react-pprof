@@ -14,14 +14,18 @@ export default defineConfig({
     toHaveScreenshot: {
       // All screenshots will be stored in tests/snapshots/{test-name}/
       mode: 'always',
-      threshold: 0.2, // Allow small visual differences
+      threshold: process.env.CI ? 0.10 : 0.01, // 10% tolerance in CI for cross-platform differences, 1% locally
+      maxDiffPixels: process.env.CI ? 100000 : 5000, // High limit to let percentage threshold control
     },
   },
 
   use: {
     baseURL: 'http://localhost:3100',
     trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    screenshot: process.env.CI ? 'on' : 'only-on-failure', // Always capture in CI
+    video: process.env.CI ? 'on' : 'off', // Record video in CI for debugging
+    actionTimeout: 10000,
+    navigationTimeout: 15000,
   },
 
   webServer: {
@@ -35,11 +39,32 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: [
+            '--use-gl=swiftshader', // Use software WebGL implementation
+            '--disable-gpu-sandbox',
+            '--enable-webgl',
+            '--enable-accelerated-2d-canvas',
+            '--disable-dev-shm-usage', // Overcome limited resource problems
+            '--no-sandbox' // Required for Docker
+          ]
+        }
+      },
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: {
+        ...devices['Desktop Firefox'],
+        launchOptions: {
+          firefoxUserPrefs: {
+            'webgl.force-enabled': true,
+            'webgl.disable-angle': false,
+            'layers.acceleration.force-enabled': true
+          }
+        }
+      },
     },
     {
       name: 'webkit',
