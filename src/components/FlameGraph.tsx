@@ -22,6 +22,7 @@ export interface FlameGraphProps {
   scrollZoomInverted?: boolean
   onFrameClick?: (frame: FrameData, stackTrace: FlameNode[], children: FlameNode[]) => void
   onZoomChange?: (zoomLevel: number) => void
+  onAnimationComplete?: () => void
 }
 
 export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRenderer> }, FlameGraphProps>(({
@@ -43,6 +44,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
   scrollZoomInverted = false,
   onFrameClick,
   onZoomChange: _onZoomChange,
+  onAnimationComplete,
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rendererRef = useRef<FlameGraphRenderer | null>(null)
@@ -92,6 +94,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
         renderer.setScrollZoom(zoomOnScroll, scrollZoomSpeed, scrollZoomInverted, () => {
           setCanPan(renderer.canPan())
         })
+        renderer.setAnimationCompleteCallback(onAnimationComplete)
         rendererRef.current = renderer
 
         // Set initial size - use the props if they're numbers
@@ -200,6 +203,13 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
       })
     }
   }, [zoomOnScroll, scrollZoomSpeed, scrollZoomInverted])
+
+  // Update animation complete callback when prop changes
+  useEffect(() => {
+    if (rendererRef.current) {
+      rendererRef.current.setAnimationCompleteCallback(onAnimationComplete)
+    }
+  }, [onAnimationComplete])
 
   useEffect(() => {
     // Only set up resize observer after renderer exists

@@ -40,6 +40,7 @@ export class FlameGraphRenderer {
 
   // Animation
   #animationFrame: number | null = null
+  #onAnimationComplete?: () => void
 
   // Scroll handling
   #scrollZoomSpeed = 0.05
@@ -234,6 +235,13 @@ export class FlameGraphRenderer {
   }
 
   /**
+   * Set animation completion callback
+   */
+  setAnimationCompleteCallback(callback?: () => void): void {
+    this.#onAnimationComplete = callback
+  }
+
+  /**
    * Handle click event
    */
   handleClick(x: number, y: number): { frame: FrameData; stackTrace: FlameNode[]; children: FlameNode[] } | null {
@@ -383,6 +391,10 @@ export class FlameGraphRenderer {
         this.#animationFrame = requestAnimationFrame(animate)
       } else {
         this.#animationFrame = null
+        // Call animation complete callback when animation finishes
+        if (this.#onAnimationComplete) {
+          this.#onAnimationComplete()
+        }
       }
     }
 

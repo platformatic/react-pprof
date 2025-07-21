@@ -13,10 +13,7 @@ test.describe('StackDetails Component', () => {
       await expect(emptyMessage).toBeVisible()
 
       // Take screenshot of empty state with tolerance for browser differences
-      await expect(page).toHaveScreenshot('stack-details-empty.png', {
-        maxDiffPixels: process.env.CI ? 8000 : 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot('stack-details-empty.png')
     })
 
     test('shows stack details after frame selection', async ({ page }) => {
@@ -37,10 +34,7 @@ test.describe('StackDetails Component', () => {
       await expect(selectedFrameInfo).toBeVisible()
 
       // Take screenshot of populated state with tolerance for browser differences
-      await expect(page).toHaveScreenshot('stack-details-populated.png', {
-        maxDiffPixels: process.env.CI ? 8000 : 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot('stack-details-populated.png')
     })
   })
 
@@ -312,10 +306,7 @@ test.describe('StackDetails Component', () => {
       await page.waitForTimeout(1000)
 
       // Take screenshots for visual consistency with more tolerance for browser differences
-      await expect(page).toHaveScreenshot('stack-details-styled.png', {
-        maxDiffPixels: process.env.CI ? 8000 : 3000,
-        threshold: 0.5
-      })
+      await expect(page).toHaveScreenshot('stack-details-styled.png')
     })
 
     test('adapts to viewport changes', async ({ page }) => {
@@ -328,16 +319,10 @@ test.describe('StackDetails Component', () => {
 
       // Test different viewport sizes
       await page.setViewportSize({ width: 1400, height: 800 })
-      await expect(page).toHaveScreenshot('stack-details-large.png', {
-        maxDiffPixels: process.env.CI ? 8000 : 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot('stack-details-large.png')
 
       await page.setViewportSize({ width: 1000, height: 600 })
-      await expect(page).toHaveScreenshot('stack-details-small.png', {
-        maxDiffPixels: process.env.CI ? 8000 : 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot('stack-details-small.png')
     })
   })
 

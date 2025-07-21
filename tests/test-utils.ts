@@ -40,6 +40,15 @@ export class FlameGraphTestUtils {
   }
 
   /**
+   * Wait for animation to complete using the callback mechanism
+   */
+  async waitForAnimationComplete() {
+    await this.page.evaluate(() => {
+      return window.waitForAnimationComplete()
+    })
+  }
+
+  /**
    * Hover over a frame in the flamegraph
    */
   async hoverFrame(x: number, y: number) {
