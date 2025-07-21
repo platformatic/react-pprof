@@ -24,7 +24,8 @@
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev",
     "build-storybook": "storybook build",
-    "demo": "webpack serve --mode development"
+    "demo": "webpack serve --mode development",
+    "example-server": "node example-server.js"
   },
   "keywords": [
     "pprof",
@@ -33,6 +34,7 @@
   "author": "Platformatic Inc. <oss@platformatic.dev> (http://platformatic.dev/)",
   "license": "MIT",
   "devDependencies": {
+    "@datadog/pprof": "^5.9.0",
     "@playwright/test": "^1.54.1",
     "@storybook/addon-docs": "^9.0.17",
     "@storybook/addon-onboarding": "^9.0.17",
