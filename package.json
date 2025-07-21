@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "description": "React component for visualizing pprof with WebGL",
   "main": "dist/index.js",
+  "bin": {
+    "react-pprof": "./cli.js"
+  },
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "tsc --noEmit && webpack --mode production",
+    "build:cli": "webpack --config webpack.cli.config.js",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",

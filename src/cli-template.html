@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PProf Viewer - {{FILENAME}}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #1e1e1e;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+    }
+    #root {
+      width: 100vw;
+      height: 100vh;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="loading">Loading profile...</div>
+  </div>
+  <script>
+    // Profile data will be injected here
+    window.PROFILE_DATA = {{PROFILE_DATA}};
+    window.PROFILE_FILENAME = '{{FILENAME}}';
+  </script>
+</body>
+</html>
