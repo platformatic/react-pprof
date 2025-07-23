@@ -19,19 +19,13 @@ test.describe('FlameGraph Visual Regression Tests', () => {
       await utils.navigateToTest({ mode: testCase.mode })
 
       // Take baseline screenshot
-      await expect(page).toHaveScreenshot(`baseline-${testCase.name}.png`, {
-        maxDiffPixels: 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot(`baseline-${testCase.name}.png`)
     }
 
     // Test with stack details
     await utils.navigateToTest({ stackDetails: true })
     await utils.clickFrame(COMMON_POSITIONS.FIRST_CHILD.x, COMMON_POSITIONS.FIRST_CHILD.y)
-    await expect(page).toHaveScreenshot('with-stack-details.png', {
-      maxDiffPixels: 1000,
-      threshold: 0.3
-    })
+    await expect(page).toHaveScreenshot('with-stack-details.png')
   })
 
   test('tooltip visual consistency', async ({ page }) => {
@@ -55,10 +49,7 @@ test.describe('FlameGraph Visual Regression Tests', () => {
       await page.waitForTimeout(1000)
       
       // Take screenshot regardless of tooltip state - we can see visually if it worked
-      await expect(page).toHaveScreenshot(`tooltip-${i}.png`, {
-        maxDiffPixels: 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot(`tooltip-${i}.png`)
     }
   })
 })

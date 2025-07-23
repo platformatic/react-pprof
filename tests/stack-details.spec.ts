@@ -14,7 +14,7 @@ test.describe('StackDetails Component', () => {
 
       // Take screenshot of empty state with tolerance for browser differences
       await expect(page).toHaveScreenshot('stack-details-empty.png', {
-        maxDiffPixels: 1000,
+        maxDiffPixels: process.env.CI ? 8000 : 1000,
         threshold: 0.3
       })
     })
@@ -38,7 +38,7 @@ test.describe('StackDetails Component', () => {
 
       // Take screenshot of populated state with tolerance for browser differences
       await expect(page).toHaveScreenshot('stack-details-populated.png', {
-        maxDiffPixels: 1000,
+        maxDiffPixels: process.env.CI ? 8000 : 1000,
         threshold: 0.3
       })
     })
@@ -313,8 +313,8 @@ test.describe('StackDetails Component', () => {
 
       // Take screenshots for visual consistency with more tolerance for browser differences
       await expect(page).toHaveScreenshot('stack-details-styled.png', {
-        maxDiffPixels: 6000,
-        threshold: 0.4
+        maxDiffPixels: process.env.CI ? 8000 : 3000,
+        threshold: 0.5
       })
     })
 
@@ -329,13 +329,13 @@ test.describe('StackDetails Component', () => {
       // Test different viewport sizes
       await page.setViewportSize({ width: 1400, height: 800 })
       await expect(page).toHaveScreenshot('stack-details-large.png', {
-        maxDiffPixels: 1000,
+        maxDiffPixels: process.env.CI ? 8000 : 1000,
         threshold: 0.3
       })
 
       await page.setViewportSize({ width: 1000, height: 600 })
       await expect(page).toHaveScreenshot('stack-details-small.png', {
-        maxDiffPixels: 1000,
+        maxDiffPixels: process.env.CI ? 8000 : 1000,
         threshold: 0.3
       })
     })

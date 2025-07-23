@@ -32,7 +32,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
   secondaryColor = '#ffcc66',
   backgroundColor = '#1e1e1e',
   textColor = '#ffffff',
-  fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
   shadowOpacity = 0.3,
   selectedOpacity = 1.0,
   hoverOpacity = 0.9,
@@ -54,6 +54,8 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
   const [computedHeight, setComputedHeight] = useState<number | null>(null)
   const [canPan, setCanPan] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [initError, setInitError] = useState<string | null>(null)
+
   useImperativeHandle(ref, () => ({
     rendererRef: rendererRef as React.RefObject<FlameGraphRenderer>
   }))
@@ -64,67 +66,79 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
       return
     }
 
-    try {
-      // Ensure canvas has valid dimensions before creating WebGL context
-      const rect = containerRef.current.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) {
-        return
-      }
+    const initializeRenderer = async () => {
+      try {
+        // Clear any previous errors
+        setInitError(null)
 
-      const renderer = new FlameGraphRenderer(canvasRef.current)
+        // Ensure canvas has valid dimensions before creating WebGL context
+        const rect = containerRef.current!.getBoundingClientRect()
+        if (rect.width <= 0 || rect.height <= 0) {
+          return
+        }
 
-      renderer.setColors(primaryColor, secondaryColor, backgroundColor, textColor)
-      renderer.setOpacity(selectedOpacity, hoverOpacity, unselectedOpacity)
-      renderer.setFramePadding(framePadding)
-      renderer.setFontFamily(fontFamily)
-      renderer.setShadowOpacity(shadowOpacity)
-      renderer.setScrollZoom(zoomOnScroll, scrollZoomSpeed, scrollZoomInverted, () => {
+        const renderer = new FlameGraphRenderer(canvasRef.current!)
+
+        // Check if WebGL initialization failed
+        if (!renderer.isInitialized()) {
+          throw new Error('Failed to initialize WebGL renderer')
+        }
+
+        renderer.setColors(primaryColor, secondaryColor, backgroundColor, textColor)
+        renderer.setOpacity(selectedOpacity, hoverOpacity, unselectedOpacity)
+        renderer.setFramePadding(framePadding)
+        renderer.setFontFamily(fontFamily)
+        renderer.setShadowOpacity(shadowOpacity)
+        renderer.setScrollZoom(zoomOnScroll, scrollZoomSpeed, scrollZoomInverted, () => {
+          setCanPan(renderer.canPan())
+        })
+        rendererRef.current = renderer
+
+        // Set initial size - use the props if they're numbers
+        if (typeof width === 'number' && typeof height === 'number') {
+          renderer.resize(width, height)
+        } else {
+          const rect = containerRef.current!.getBoundingClientRect()
+          renderer.resize(rect.width, rect.height)
+        }
+
+        // Set the data and render
+        const requiredHeight = renderer.setData(profile)
+
+        // Get the required height from renderer (only for auto-height mode)
+        const useExplicitHeight = typeof height === 'number'
+        renderer.setHeightMode(useExplicitHeight)
+
+        if (!useExplicitHeight) {
+          setComputedHeight(requiredHeight)
+        } else {
+          setComputedHeight(null)
+        }
+
+        // Check if content is scrollable and pannable
         setCanPan(renderer.canPan())
-      })
-      rendererRef.current = renderer
 
-      // Set initial size - use the props if they're numbers
-      if (typeof width === 'number' && typeof height === 'number') {
-        renderer.resize(width, height)
-      } else {
-        const rect = containerRef.current.getBoundingClientRect()
-        renderer.resize(rect.width, rect.height)
+        // Set the root element (main frame) as selected by default - get from renderer's internal data
+        const internalData = (renderer as any).data
+        if (internalData && internalData.children.length > 0) {
+          setSelectedFrame(internalData.children[0].id)
+        }
+
+        renderer.render()
+
+        // Update scrollable and pannable state when renderer changes
+        setCanPan(renderer.canPan())
+
+        return () => {
+          renderer.destroy()
+        }
+      } catch (error) {
+        console.error('Failed to initialize FlameGraph renderer:', error)
+        setInitError(error instanceof Error ? error.message : 'Failed to initialize WebGL renderer')
       }
-
-      // Set the data and render
-      const requiredHeight = renderer.setData(profile)
-
-      // Get the required height from renderer (only for auto-height mode)
-      const useExplicitHeight = typeof height === 'number'
-      renderer.setHeightMode(useExplicitHeight)
-
-      if (!useExplicitHeight) {
-        setComputedHeight(requiredHeight)
-      } else {
-        setComputedHeight(null)
-      }
-
-      // Check if content is scrollable and pannable
-      setCanPan(renderer.canPan())
-
-      // Set the root element (main frame) as selected by default - get from renderer's internal data
-      const internalData = (renderer as any).data
-      if (internalData && internalData.children.length > 0) {
-        setSelectedFrame(internalData.children[0].id)
-      }
-
-      renderer.render()
-
-      // Update scrollable and pannable state when renderer changes
-      setCanPan(renderer.canPan())
-
-      return () => {
-        renderer.destroy()
-      }
-    // eslint-disable-next-line no-unused-vars
-    } catch (_) {
-      // Error initializing renderer - fail silently
     }
+
+    initializeRenderer()
   }, [profile, primaryColor, secondaryColor, backgroundColor, textColor, fontFamily])
 
   // Update colors when they change (without recreating the renderer)
@@ -149,6 +163,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
       rendererRef.current.render()
     }
   }, [shadowOpacity])
+
 
   useEffect(() => {
     if (rendererRef.current && canvasRef.current && containerRef.current) {
@@ -412,6 +427,38 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
 
   // Determine if we should use explicit height or auto-height mode
   const useExplicitHeight = typeof height === 'number'
+
+  // Show error state if WebGL initialization failed
+  if (initError) {
+    return (
+      <div
+        ref={containerRef}
+        style={{
+          width: typeof width === 'number' ? `${width}px` : width,
+          height: useExplicitHeight ? (typeof height === 'number' ? `${height}px` : height) : '400px',
+          position: 'relative',
+          backgroundColor,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          color: textColor,
+          textAlign: 'center',
+          padding: '20px'
+        }}
+      >
+        <div style={{ fontSize: '18px', marginBottom: '10px' }}>
+          WebGL Initialization Failed
+        </div>
+        <div style={{ fontSize: '14px', opacity: 0.7, maxWidth: '400px' }}>
+          {initError}
+        </div>
+        <div style={{ fontSize: '12px', opacity: 0.5, marginTop: '10px' }}>
+          This browser may not support WebGL or hardware acceleration is disabled.
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

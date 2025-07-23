@@ -2,20 +2,46 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-ci
+  cancel-in-progress: true
 
 jobs:
   test:
-    name: Test
+    name: Test ${{ matrix.test-file }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.54.1-noble
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20, 22, 24]
+        test-file:
+          - accessibility
+          - data-integrity
+          - edge-cases
+          - flamegraph-tooltip
+          - flamegraph
+          - integration
+          - parser
+          - performance
+          - responsive-design
+          - stack-details
+          - theme-consistency
+          - visual-regression
 
     steps:
+    - name: Install GL dependencies
+      run: |
+        apt-get update
+        apt-get install -y libgl1 libglu1-mesa libglvnd0 libglx0 xvfb \
+          mesa-utils libegl1 libgles2
+        which glxinfo || echo "glxinfo not found"
+
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -23,36 +49,44 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+        cache: npm
 
     - name: Install dependencies
-      run: npm ci
+      run: npm install
 
     - name: Build TypeScript
       run: npm run build
 
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-
-    - name: Run Playwright tests
-      run: npm test
+    - name: Run ${{ matrix.test-file }} tests
+      run: |
+        # Start virtual display for WebGL support
+        Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+        export DISPLAY=:99
+        sleep 2  # Give Xvfb time to start
+        # Verify Xvfb is running
+        ps aux | grep Xvfb || echo "Xvfb not running"
+        # Check GL support
+        glxinfo -display :99 | grep "OpenGL" || echo "No GL support detected"
+        npx playwright test tests/${{ matrix.test-file }}.spec.ts
       env:
         CI: true
+        HOME: /root
+        DISPLAY: :99
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: playwright-report-node-${{ matrix.node-version }}
+        name: playwright-report-${{ matrix.test-file }}-node-${{ matrix.node-version }}
         path: |
           playwright-report/
           test-results/
         retention-days: 30
 
-    - name: Upload screenshots
+    - name: Upload screenshots on failure
       uses: actions/upload-artifact@v4
       if: failure()
       with:
-        name: playwright-screenshots-node-${{ matrix.node-version }}
+        name: playwright-screenshots-${{ matrix.test-file }}-node-${{ matrix.node-version }}
         path: test-results/
         retention-days: 30

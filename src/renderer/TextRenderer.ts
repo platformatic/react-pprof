@@ -24,7 +24,7 @@ export class TextRenderer {
   #atlasWidth = 0
   #atlasHeight = 0
   #fontSize = 11
-  #fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+  #fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif'
   #atlasScale = Math.max(2, window.devicePixelRatio)
   #textColor = '#ffffff'
   #shadowOpacity = 0.3

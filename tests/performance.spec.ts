@@ -30,10 +30,7 @@ test.describe('FlameGraph Performance Tests', () => {
     const canvas = await utils.getCanvasElement()
     await expect(canvas).toBeVisible()
 
-    await expect(page).toHaveScreenshot('performance-after-rapid-interactions.png', {
-      maxDiffPixels: 25000,
-      threshold: 0.5
-    })
+    await expect(page).toHaveScreenshot('performance-after-rapid-interactions.png')
   })
 
   test('maintains WebGL context health', async ({ page }) => {

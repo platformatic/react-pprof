@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { FlameGraph } from './components/FlameGraph'
 import { StackDetails } from './components/StackDetails'
@@ -11,6 +11,15 @@ declare global {
     PROFILE_FILENAME: string
   }
 }
+
+// Theme colors
+const PRIMARY_COLOR = '#ff4444'
+const SECONDARY_COLOR = '#ffcc66'
+const BACKGROUND_COLOR = '#1e1e1e'
+const TEXT_COLOR = '#ffffff'
+const HEADER_BG_COLOR = '#2a2a2a'
+const BORDER_COLOR = '#333'
+const ERROR_COLOR = '#ff6b6b'
 
 const CliTemplate: React.FC = () => {
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -52,16 +61,6 @@ const CliTemplate: React.FC = () => {
     setChildren(frameChildren)
   }
 
-  const config = useMemo(() => ({
-    profile,
-    width: Math.max(800, window.innerWidth - 450),
-    height: Math.max(600, window.innerHeight - 100),
-    primaryColor: '#ff4444',
-    secondaryColor: '#ffcc66',
-    backgroundColor: '#1e1e1e',
-    textColor: '#ffffff',
-  }), [profile])
-
   if (loading) {
     return (
       <div style={{
@@ -69,8 +68,8 @@ const CliTemplate: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#1e1e1e',
-        color: '#ffffff',
+        backgroundColor: BACKGROUND_COLOR,
+        color: TEXT_COLOR,
         fontSize: '18px'
       }}>
         Loading profile...
@@ -86,14 +85,14 @@ const CliTemplate: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#1e1e1e',
-        color: '#ff6b6b',
+        backgroundColor: BACKGROUND_COLOR,
+        color: ERROR_COLOR,
         fontSize: '18px',
         gap: '10px',
         padding: '20px'
       }}>
         <div>Error loading profile:</div>
-        <div style={{ fontSize: '14px', fontFamily: 'monospace' }}>{error}</div>
+        <div style={{ fontSize: '14px', fontFamily: 'SF Mono, Monaco, Cascadia Code, Roboto Mono, Courier New, monospace' }}>{error}</div>
       </div>
     )
   }
@@ -105,8 +104,8 @@ const CliTemplate: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        backgroundColor: '#1e1e1e',
-        color: '#ffffff',
+        backgroundColor: BACKGROUND_COLOR,
+        color: TEXT_COLOR,
         fontSize: '18px'
       }}>
         No profile data
@@ -119,13 +118,13 @@ const CliTemplate: React.FC = () => {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
-      backgroundColor: config.backgroundColor,
+      backgroundColor: BACKGROUND_COLOR,
     }}>
       <header style={{
         padding: '15px 20px',
-        backgroundColor: '#2a2a2a',
-        borderBottom: '1px solid #333',
-        color: config.textColor,
+        backgroundColor: HEADER_BG_COLOR,
+        borderBottom: `1px solid ${BORDER_COLOR}`,
+        color: TEXT_COLOR,
         flexShrink: 0
       }}>
         <h1 style={{ margin: 0, fontSize: '24px' }}>PProf Viewer</h1>
@@ -143,7 +142,13 @@ const CliTemplate: React.FC = () => {
       }}>
         <div style={{ flex: 1 }}>
           <FlameGraph
-            {...config}
+            profile={profile}
+            width={Math.max(800, window.innerWidth - 450)}
+            height={Math.max(600, window.innerHeight - 100)}
+            primaryColor={PRIMARY_COLOR}
+            secondaryColor={SECONDARY_COLOR}
+            backgroundColor={BACKGROUND_COLOR}
+            textColor={TEXT_COLOR}
             onFrameClick={handleFrameClick}
           />
         </div>
@@ -153,10 +158,10 @@ const CliTemplate: React.FC = () => {
             selectedFrame={selectedFrame}
             stackTrace={stackTrace}
             children={children}
-            backgroundColor={config.backgroundColor}
-            textColor={config.textColor}
-            primaryColor={config.primaryColor}
-            secondaryColor={config.secondaryColor}
+            backgroundColor={BACKGROUND_COLOR}
+            textColor={TEXT_COLOR}
+            primaryColor={PRIMARY_COLOR}
+            secondaryColor={SECONDARY_COLOR}
           />
         </div>
       </div>

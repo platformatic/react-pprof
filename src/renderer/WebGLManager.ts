@@ -29,25 +29,75 @@ export class WebGLManager {
    * Initialize WebGL context and create shader programs
    */
   initialize(): boolean {
+    // Try multiple WebGL context options for better CI compatibility
+    const contextOptions = {
+      alpha: true,
+      depth: false,
+      stencil: false,
+      antialias: false,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+      failIfMajorPerformanceCaveat: false
+    }
+
     // Try WebGL2 first, fall back to WebGL1
-    this.#gl = this.#canvas.getContext('webgl2') || this.#canvas.getContext('webgl') as WebGL2RenderingContext
+    this.#gl = this.#canvas.getContext('webgl2', contextOptions) as WebGL2RenderingContext | null || 
+               this.#canvas.getContext('webgl', contextOptions) as WebGL2RenderingContext | null
 
     if (!this.#gl) {
       // eslint-disable-next-line no-console
-      console.error('WebGL not supported')
+      console.error('WebGL not supported - tried both webgl2 and webgl contexts')
+      
+      // Log more debug info for CI
+      if (typeof window !== 'undefined') {
+        // eslint-disable-next-line no-console
+        console.error('WebGL debug info:', {
+          userAgent: navigator.userAgent,
+          webglSupported: !!window.WebGLRenderingContext,
+          webgl2Supported: !!window.WebGL2RenderingContext,
+          canvasElement: this.#canvas,
+          canvasWidth: this.#canvas.width,
+          canvasHeight: this.#canvas.height,
+          contextAttributes: contextOptions
+        })
+        
+        // Try to get any error info
+        const testCanvas = document.createElement('canvas')
+        const testGl = testCanvas.getContext('webgl')
+        if (!testGl) {
+          // eslint-disable-next-line no-console
+          console.error('Even a fresh canvas cannot get WebGL context')
+        }
+      }
       return false
     }
 
     const isWebGL2 = this.#gl instanceof WebGL2RenderingContext
+    
+    // eslint-disable-next-line no-console
+    console.log(`WebGL initialized: ${isWebGL2 ? 'WebGL2' : 'WebGL1'}`)
 
     try {
       this.#createMainProgram(isWebGL2)
       this.#createTextProgram(isWebGL2)
       this.#createBuffers()
+      
+      // Validate context is still valid
+      if (this.#gl.isContextLost()) {
+        throw new Error('WebGL context was lost during initialization')
+      }
+      
       return true
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to initialize WebGL:', error)
+      
+      // Additional error logging for CI debugging
+      if (this.#gl) {
+        // eslint-disable-next-line no-console
+        console.error('WebGL error state:', this.#gl.getError())
+      }
+      
       return false
     }
   }

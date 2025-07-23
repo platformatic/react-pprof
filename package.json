@@ -7,7 +7,7 @@
     "react-pprof": "./cli.js"
   },
   "scripts": {
-    "build": "tsc --noEmit && webpack --mode production",
+    "build": "tsc --noEmit",
     "build:cli": "webpack --config webpack.cli.config.js",
     "test": "playwright test",
     "test:headed": "playwright test --headed",

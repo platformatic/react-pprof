@@ -17,17 +17,11 @@ test.describe('FlameGraph Edge Cases Tests', () => {
       await page.waitForTimeout(500)
     }
 
-    await expect(page).toHaveScreenshot('extreme-zoom-in.png', {
-      maxDiffPixels: 1000,
-      threshold: 0.3,
-    })
+    await expect(page).toHaveScreenshot('extreme-zoom-in.png')
 
     // Click on a higher level frame to zoom out partially
     await utils.clickFrame(COMMON_POSITIONS.ROOT_FRAME.x, COMMON_POSITIONS.ROOT_FRAME.y)
-    await expect(page).toHaveScreenshot('extreme-zoom-out.png', {
-      maxDiffPixels: 1000,
-      threshold: 0.3,
-    })
+    await expect(page).toHaveScreenshot('extreme-zoom-out.png')
   })
 
   test('handles mouse leave during interactions', async ({ page }) => {
@@ -44,10 +38,7 @@ test.describe('FlameGraph Edge Cases Tests', () => {
     // Should still be functional
     await utils.clickFrame(COMMON_POSITIONS.FIRST_CHILD.x, COMMON_POSITIONS.FIRST_CHILD.y)
 
-    await expect(page).toHaveScreenshot('after-mouse-leave.png', {
-      maxDiffPixels: 1000,
-      threshold: 0.3,
-    })
+    await expect(page).toHaveScreenshot('after-mouse-leave.png')
   })
 
   test('handles window focus changes', async ({ page }) => {
@@ -64,9 +55,6 @@ test.describe('FlameGraph Edge Cases Tests', () => {
     // Should still be functional
     await utils.clickFrame(COMMON_POSITIONS.FIRST_CHILD.x, COMMON_POSITIONS.FIRST_CHILD.y)
 
-    await expect(page).toHaveScreenshot('after-focus-change.png', {
-      maxDiffPixels: 1000,
-      threshold: 0.3,
-    })
+    await expect(page).toHaveScreenshot('after-focus-change.png')
   })
 })

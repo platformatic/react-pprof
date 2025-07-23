@@ -20,10 +20,7 @@ test.describe('FlameGraph Theme Consistency Tests', () => {
       // Test interaction on each theme
       await utils.clickFrame(COMMON_POSITIONS.FIRST_CHILD.x, COMMON_POSITIONS.FIRST_CHILD.y)
       
-      await expect(page).toHaveScreenshot(`theme-${theme}.png`, {
-        maxDiffPixels: 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot(`theme-${theme}.png`)
     }
   })
 
@@ -43,10 +40,7 @@ test.describe('FlameGraph Theme Consistency Tests', () => {
       // Click another frame to change selection
       await utils.clickFrame(COMMON_POSITIONS.SECOND_CHILD.x, COMMON_POSITIONS.SECOND_CHILD.y)
       
-      await expect(page).toHaveScreenshot(`interaction-${theme}.png`, {
-        maxDiffPixels: 1000,
-        threshold: 0.3
-      })
+      await expect(page).toHaveScreenshot(`interaction-${theme}.png`)
     }
   })
 })
