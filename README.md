@@ -220,6 +220,48 @@ react-pprof synthetic-profile.pb
 
 The synthetic server creates realistic function hierarchies and CPU distributions for demonstration purposes.
 
+### Signal-Controlled Profiling (preload.js)
+
+For production environments, you can use the included preload script to enable/disable profiling on-demand via SIGUSR2 signals:
+
+```bash
+# Start your application with the preload script
+node --require preload.js your-app.js
+
+# Toggle profiling on/off (run twice: once to start, once to stop and save)
+kill -USR2 <process-pid>
+```
+
+**Usage:**
+1. **Start profiling**: Send SIGUSR2 signal to start CPU profiling
+2. **Stop and save**: Send SIGUSR2 again to stop profiling and save profile to disk
+3. **Profile files**: Automatically saved as `cpu-profile-<timestamp>.pb`
+
+**Example workflow:**
+```bash
+# Start your app with preloader
+node --require preload.js server.js &
+APP_PID=$!
+
+# Your app runs normally...
+# When you want to profile:
+kill -USR2 $APP_PID  # Start profiling
+
+# Let it run under load for a while...
+# Then stop and save:
+kill -USR2 $APP_PID  # Stop and save profile
+
+# Generate flamegraph from saved profile
+react-pprof cpu-profile-2024-01-15T10-30-00-000Z.pb
+```
+
+**Benefits:**
+- Zero overhead when not profiling
+- No code changes to your application
+- Signal-based control for production safety
+- Automatic timestamped file naming
+- Works with any Node.js application
+
 ## Components
 
 ### FlameGraph
@@ -479,6 +521,7 @@ npm run test:ui
 npm run test:flamegraph
 npm run test:stack-details
 npm run test:integration
+npm run test:node
 
 # Update visual snapshots
 npm run test:update-snapshots
@@ -487,6 +530,7 @@ npm run test:update-snapshots
 ### Test Coverage
 
 - **Unit Tests**: Component logic and data processing
+- **Node.js Tests**: Preload script and signal handling (`test:node`)
 - **Integration Tests**: Component interaction and communication
 - **Visual Regression Tests**: Pixel-perfect UI consistency
 - **Performance Tests**: WebGL performance benchmarks
