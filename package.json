@@ -17,6 +17,7 @@
     "test:stack-details": "playwright test stack-details.spec.ts",
     "test:integration": "playwright test integration.spec.ts",
     "test:update-snapshots": "playwright test --update-snapshots",
+    "test:node": "node --test test-node/*.test.js",
     "lint": "oxlint src/ tests/",
     "lint:fix": "oxlint --fix src/ tests/",
     "typecheck": "tsc --noEmit",
