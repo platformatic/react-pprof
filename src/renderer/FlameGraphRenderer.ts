@@ -196,6 +196,13 @@ export class FlameGraphRenderer {
       this.#interaction.setSelectedFrame(selectedFrameId)
       // Start animation if zoom targets have changed
       this.#startAnimation()
+    } else if (this.#onAnimationComplete) {
+      // No frame change means no animation - call callback immediately
+      setTimeout(() => {
+        if (this.#onAnimationComplete) {
+          this.#onAnimationComplete()
+        }
+      }, 0)
     }
   }
 
@@ -249,6 +256,17 @@ export class FlameGraphRenderer {
     if (result) {
       this.#selectedFrameId = result.frame.id
       this.#startAnimation()
+    } else {
+      // No frame was clicked - if we have an animation callback, call it immediately
+      // since no animation will start
+      if (this.#onAnimationComplete) {
+        // Use setTimeout to make it async like a real animation completion
+        setTimeout(() => {
+          if (this.#onAnimationComplete) {
+            this.#onAnimationComplete()
+          }
+        }, 0)
+      }
     }
     return result
   }
