@@ -40,6 +40,7 @@ export class FlameGraphRenderer {
 
   // Animation
   #animationFrame: number | null = null
+  #onAnimationComplete?: () => void
 
   // Scroll handling
   #scrollZoomSpeed = 0.05
@@ -195,6 +196,13 @@ export class FlameGraphRenderer {
       this.#interaction.setSelectedFrame(selectedFrameId)
       // Start animation if zoom targets have changed
       this.#startAnimation()
+    } else if (this.#onAnimationComplete) {
+      // No frame change means no animation - call callback immediately
+      setTimeout(() => {
+        if (this.#onAnimationComplete) {
+          this.#onAnimationComplete()
+        }
+      }, 0)
     }
   }
 
@@ -234,6 +242,13 @@ export class FlameGraphRenderer {
   }
 
   /**
+   * Set animation completion callback
+   */
+  setAnimationCompleteCallback(callback?: () => void): void {
+    this.#onAnimationComplete = callback
+  }
+
+  /**
    * Handle click event
    */
   handleClick(x: number, y: number): { frame: FrameData; stackTrace: FlameNode[]; children: FlameNode[] } | null {
@@ -241,6 +256,17 @@ export class FlameGraphRenderer {
     if (result) {
       this.#selectedFrameId = result.frame.id
       this.#startAnimation()
+    } else {
+      // No frame was clicked - if we have an animation callback, call it immediately
+      // since no animation will start
+      if (this.#onAnimationComplete) {
+        // Use setTimeout to make it async like a real animation completion
+        setTimeout(() => {
+          if (this.#onAnimationComplete) {
+            this.#onAnimationComplete()
+          }
+        }, 0)
+      }
     }
     return result
   }
@@ -383,6 +409,10 @@ export class FlameGraphRenderer {
         this.#animationFrame = requestAnimationFrame(animate)
       } else {
         this.#animationFrame = null
+        // Call animation complete callback when animation finishes
+        if (this.#onAnimationComplete) {
+          this.#onAnimationComplete()
+        }
       }
     }
 

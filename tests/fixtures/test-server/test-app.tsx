@@ -12,10 +12,20 @@ declare global {
   interface Window {
     fetchProfile: typeof fetchProfile
     FlameGraphTooltip: typeof FlameGraphTooltip
+    waitForAnimationComplete: () => Promise<void>
   }
 }
 window.fetchProfile = fetchProfile
 window.FlameGraphTooltip = FlameGraphTooltip
+
+// Global promise resolver for animation completion
+let animationCompleteResolver: (() => void) | null = null
+
+window.waitForAnimationComplete = () => {
+  return new Promise<void>((resolve) => {
+    animationCompleteResolver = resolve
+  })
+}
 
 // Test component that renders FlameGraph with different configurations
 const TestApp: React.FC = () => {
@@ -34,6 +44,14 @@ const TestApp: React.FC = () => {
       value: frame.value,
       depth: frame.depth
     })
+  }
+
+  const handleAnimationComplete = () => {
+    console.log('Animation complete')
+    if (animationCompleteResolver) {
+      animationCompleteResolver()
+      animationCompleteResolver = null
+    }
   }
 
   // Get test configuration from URL params
@@ -103,6 +121,7 @@ const TestApp: React.FC = () => {
         <FlameGraph
           {...config}
           onFrameClick={handleFrameClick}
+          onAnimationComplete={handleAnimationComplete}
         />
       </div>
       {showStackDetails && (

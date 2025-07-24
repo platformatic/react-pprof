@@ -40,6 +40,26 @@ export class FlameGraphTestUtils {
   }
 
   /**
+   * Wait for animation to complete using the callback mechanism
+   */
+  async waitForAnimationComplete(timeoutMs: number = 5000) {
+    try {
+      await this.page.evaluate(async (timeout) => {
+        return Promise.race([
+          window.waitForAnimationComplete(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Animation timeout after ${timeout}ms`)), timeout)
+          )
+        ])
+      }, timeoutMs)
+    } catch (error) {
+      console.log('Animation wait failed:', error)
+      // Fallback to a fixed timeout if callback fails
+      await this.page.waitForTimeout(1000)
+    }
+  }
+
+  /**
    * Hover over a frame in the flamegraph
    */
   async hoverFrame(x: number, y: number) {

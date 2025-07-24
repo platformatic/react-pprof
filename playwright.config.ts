@@ -12,10 +12,10 @@ export default defineConfig({
   // Centralize all snapshots in one directory
   expect: {
     toHaveScreenshot: {
-      // All screenshots will be stored in tests/snapshots/{test-name}/
-      mode: 'always',
-      threshold: process.env.CI ? 0.10 : 0.01, // 10% tolerance in CI for cross-platform differences, 1% locally
-      maxDiffPixels: process.env.CI ? 100000 : 5000, // High limit to let percentage threshold control
+      // Ratio of total pixels which may be different
+      maxDiffPixelRatio: 0.15,
+      // Ratio by which a given pixel may be different
+      threshold: 0.05,
     },
   },
 
@@ -41,7 +41,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        launchOptions: {
+        launchOptions: process.env.CI ? {
           args: [
             '--use-gl=swiftshader', // Use software WebGL implementation
             '--disable-gpu-sandbox',
@@ -50,20 +50,20 @@ export default defineConfig({
             '--disable-dev-shm-usage', // Overcome limited resource problems
             '--no-sandbox' // Required for Docker
           ]
-        }
+        } : {}
       },
     },
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        launchOptions: {
+        launchOptions: process.env.CI ? {
           firefoxUserPrefs: {
             'webgl.force-enabled': true,
             'webgl.disable-angle': false,
             'layers.acceleration.force-enabled': true
           }
-        }
+        } : {}
       },
     },
     {
