@@ -42,10 +42,8 @@ const CliTemplate: React.FC = () => {
         const uint8Array = new Uint8Array(window.PROFILE_DATA)
         const profile = Profile.decode(uint8Array)
         
-        console.log('Decoded profile:', profile)
         setProfile(profile)
       } catch (err) {
-        console.error('Profile parsing error:', err)
         setError(err instanceof Error ? err.message : 'Failed to load profile')
       } finally {
         setLoading(false)

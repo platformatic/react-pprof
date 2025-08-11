@@ -8,17 +8,38 @@ export class FlameGraphTestUtils {
    * Navigate to test page with optional configuration
    * Now uses mock data instead of server - much faster!
    */
-  async navigateToTest(config?: { mode?: string; stackDetails?: boolean }) {
+  async navigateToTest(config?: { 
+    mode?: string; 
+    stackDetails?: boolean;
+    hottestFrames?: boolean;
+    hottestControls?: boolean;
+    frameDetails?: boolean;
+    fullFlameGraph?: boolean;
+    flamegraph?: boolean;
+    hottestHeight?: number;
+  }) {
     const params = new URLSearchParams()
     if (config?.mode) {params.set('mode', config.mode)}
     if (config?.stackDetails) {params.set('stackDetails', 'true')}
+    if (config?.hottestFrames) {params.set('hottestFrames', 'true')}
+    if (config?.hottestControls) {params.set('hottestControls', 'true')}
+    if (config?.frameDetails) {params.set('frameDetails', 'true')}
+    if (config?.fullFlameGraph) {params.set('fullFlameGraph', 'true')}
+    if (config?.flamegraph === false) {params.set('flamegraph', 'false')}
+    if (config?.hottestHeight) {params.set('hottestHeight', config.hottestHeight.toString())}
 
     const baseUrl = 'http://localhost:3100'
     const url = `${baseUrl}?${params.toString()}`
     await this.page.goto(url)
 
-    // Wait for FlameGraph to render
-    await this.page.waitForSelector('canvas', { timeout: 5000 })
+    // Wait for appropriate component to render
+    if (config?.hottestFrames) {
+      await this.page.waitForSelector('.hottest-frames-bar', { timeout: 5000 })
+    } else if (config?.fullFlameGraph) {
+      await this.page.waitForSelector('[data-testid="full-flamegraph-container"]', { timeout: 5000 })
+    } else if (config?.flamegraph !== false) {
+      await this.page.waitForSelector('canvas', { timeout: 5000 })
+    }
     await this.page.waitForTimeout(200)
   }
 
@@ -53,8 +74,8 @@ export class FlameGraphTestUtils {
         ])
       }, timeoutMs)
     } catch (error) {
-      console.log('Animation wait failed:', error)
-      // Fallback to a fixed timeout if callback fails
+      // Animation callback not implemented or timed out
+      // This is expected in many cases, just use a fixed wait
       await this.page.waitForTimeout(1000)
     }
   }

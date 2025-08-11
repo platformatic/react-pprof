@@ -1,2 +1,6 @@
 export { FlameGraph, type FlameGraphProps } from './FlameGraph'
 export { StackDetails, type StackDetailsProps } from './StackDetails'
+export { HottestFramesBar, type HottestFramesBarProps, type FrameWithSelfTime, useHottestFramesNavigation } from './HottestFramesBar'
+export { HottestFramesControls, type HottestFramesControlsProps } from './HottestFramesControls'
+export { FrameDetails, type FrameDetailsProps } from './FrameDetails'
+export { FullFlameGraph, type FullFlameGraphProps } from './FullFlameGraph'

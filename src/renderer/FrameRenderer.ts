@@ -1,6 +1,7 @@
 import { mat3 } from 'gl-matrix'
 import { WebGLManager } from './WebGLManager'
 import { FlameNode } from './FlameDataProcessor'
+import { getFrameColorBySameDepthRatio } from './colors'
 
 /**
  * Handles rendering of flame graph frames with proper inset borders
@@ -171,7 +172,8 @@ export class FrameRenderer {
   }
 
   /**
-   * Calculate frame color based on relative size within the same depth level
+   * Calculate frame color based on its relative size at the same depth level
+   * This matches the flame graph coloring algorithm
    */
   #calculateFrameColor(
     node: FlameNode,
@@ -179,33 +181,16 @@ export class FrameRenderer {
     primaryColor: [number, number, number],
     secondaryColor: [number, number, number]
   ): [number, number, number] {
-    // Find all frames at the same depth level
-    const framesAtSameDepth = allFrames.filter(frame => frame.node.depth === node.depth)
-
-    if (framesAtSameDepth.length === 0) {
-      return primaryColor
-    }
-
-    // Calculate total value at this depth level
-    const totalValueAtDepth = framesAtSameDepth.reduce((sum, frame) => sum + frame.node.value, 0)
-
-    // Calculate this frame's relative size within its depth level
-    const relativeSize = totalValueAtDepth > 0 ? node.value / totalValueAtDepth : 0
-
-    // Apply quadratic scale for better color differentiation
-    // Square the ratio to emphasize differences - small ratios become even smaller
-    const quadraticSize = relativeSize * relativeSize
-
-    // Blend factor: large frames = 0 (primary), small frames = 1 (secondary)
-    const blendFactor = 1 - quadraticSize
-
-    // Interpolate between primary and secondary color based on relative size
-    const color: [number, number, number] = [
-      primaryColor[0] * (1 - blendFactor) + secondaryColor[0] * blendFactor,
-      primaryColor[1] * (1 - blendFactor) + secondaryColor[1] * blendFactor,
-      primaryColor[2] * (1 - blendFactor) + secondaryColor[2] * blendFactor
-    ]
-
-    return color
+    // Calculate total value at this frame's depth level
+    const framesAtDepth = allFrames.filter(f => f.node.depth === node.depth)
+    const totalValueAtDepth = framesAtDepth.reduce((sum, f) => sum + f.node.value, 0)
+    
+    // Use the shared color computation function
+    return getFrameColorBySameDepthRatio(
+      primaryColor,
+      secondaryColor,
+      node.value,
+      totalValueAtDepth
+    )
   }
 }

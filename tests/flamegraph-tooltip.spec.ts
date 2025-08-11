@@ -20,8 +20,7 @@ test.describe('FlameGraphTooltip Component', () => {
       const tooltip = page.locator('.flamegraph-tooltip')
       await expect(tooltip).toBeVisible()
 
-      // Check tooltip content
-      await expect(tooltip.locator('text=Function:')).toBeVisible()
+      // Check tooltip content - no more 'Function:' prefix
       await expect(tooltip.locator('text=Value:')).toBeVisible()
       await expect(tooltip.locator('text=Width:')).toBeVisible()
       await expect(tooltip.locator('text=Depth:')).toBeVisible()
@@ -44,11 +43,11 @@ test.describe('FlameGraphTooltip Component', () => {
       const tooltip = page.locator('.flamegraph-tooltip')
       await expect(tooltip).toBeVisible()
 
-      // Check background
+      // Check background - should be white now
       const bgColor = await tooltip.evaluate(el =>
         window.getComputedStyle(el).backgroundColor
       )
-      expect(bgColor).toBe('rgba(0, 0, 0, 0.9)')
+      expect(bgColor).toMatch(/rgb\(255,\s*255,\s*255\)|white/)
 
       // Check border radius
       const borderRadius = await tooltip.evaluate(el =>
@@ -67,6 +66,37 @@ test.describe('FlameGraphTooltip Component', () => {
         window.getComputedStyle(el).pointerEvents
       )
       expect(pointerEvents).toBe('none')
+      
+      // Check text color - should be black
+      const textColor = await tooltip.evaluate(el =>
+        window.getComputedStyle(el).color
+      )
+      expect(textColor).toMatch(/rgb\(0,\s*0,\s*0\)|black/)
+    })
+
+    test('tooltip uses configured font family', async ({ page }) => {
+      await page.goto('http://localhost:3100')
+
+      // Wait for flamegraph to render
+      await page.waitForSelector('canvas', { timeout: 5000 })
+      await page.waitForTimeout(200)
+
+      // Hover over a frame
+      const canvas = page.locator('canvas').first()
+      await canvas.hover({ position: { x: 200, y: 50 } })
+
+      // Wait for tooltip
+      await page.waitForTimeout(1000)
+
+      const tooltip = page.locator('.flamegraph-tooltip')
+      await expect(tooltip).toBeVisible({ timeout: 5000 })
+
+      // Check font family - test app uses monospace
+      const fontFamily = await tooltip.evaluate(el =>
+        window.getComputedStyle(el).fontFamily
+      )
+      // Test app configures monospace font
+      expect(fontFamily.toLowerCase()).toContain('monospace')
     })
 
     test('tooltip disappears when mouse leaves frame', async ({ page }) => {
