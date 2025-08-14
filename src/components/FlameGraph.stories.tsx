@@ -213,7 +213,7 @@ const createNodeJSServerProfile = (): Profile => {
     location: locations,
     function: profileFunctions,
     stringTable,
-    timeNanos: BigInt(Date.now() * 1000000),
+    timeNanos: Date.now() * 1000000,
     durationNanos: 10000000000, // 10 second profile
     periodType: new ValueType({
       type: stringTable.dedup('cpu'),
@@ -249,9 +249,14 @@ const meta: Meta<typeof FlameGraph> = {
     ),
   ],
   argTypes: {
-    profile: {
+    // Exclude profile from controls as it contains BigInt values that can't be serialized
+    profile: { 
+      control: false,
       table: { disable: true }, // Hide profile from controls since it's complex
     },
+    onFrameClick: { control: false },
+    onZoomChange: { control: false },
+    onAnimationComplete: { control: false },
     width: {
       control: { type: 'number' },
       description: 'Width of the flamegraph',

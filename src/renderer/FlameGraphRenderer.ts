@@ -61,9 +61,7 @@ export class FlameGraphRenderer {
       // In CI environments, we might not have WebGL available
       // Log the error but don't throw to allow tests to run
       if (typeof process !== 'undefined' && process.env.CI) {
-        console.warn('WebGL initialization failed in CI environment - using fallback mode')
-        console.warn('Canvas dimensions:', canvas.width, 'x', canvas.height)
-        console.warn('Canvas style:', canvas.style.width, 'x', canvas.style.height)
+        // WebGL initialization failed in CI environment - using fallback mode
         return
       }
       throw new Error('Failed to initialize WebGL')

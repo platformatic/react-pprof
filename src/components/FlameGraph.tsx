@@ -20,7 +20,8 @@ export interface FlameGraphProps {
   zoomOnScroll?: boolean
   scrollZoomSpeed?: number
   scrollZoomInverted?: boolean
-  onFrameClick?: (frame: FrameData, stackTrace: FlameNode[], children: FlameNode[]) => void
+  selectedFrameId?: string | null
+  onFrameClick?: (frame: FrameData | null, stackTrace: FlameNode[], children: FlameNode[]) => void
   onZoomChange?: (zoomLevel: number) => void
   onAnimationComplete?: () => void
 }
@@ -42,6 +43,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
   zoomOnScroll = false,
   scrollZoomSpeed = 0.05,
   scrollZoomInverted = false,
+  selectedFrameId,
   onFrameClick,
   onZoomChange: _onZoomChange,
   onAnimationComplete,
@@ -136,7 +138,6 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
           renderer.destroy()
         }
       } catch (error) {
-        console.error('Failed to initialize FlameGraph renderer:', error)
         setInitError(error instanceof Error ? error.message : 'Failed to initialize WebGL renderer')
       }
     }
@@ -167,6 +168,14 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
     }
   }, [shadowOpacity])
 
+  // Handle external frame selection
+  useEffect(() => {
+    if (rendererRef.current && selectedFrameId !== undefined) {
+      rendererRef.current.setFrameStates(selectedFrameId, hoveredFrame)
+      setSelectedFrame(selectedFrameId)
+      rendererRef.current.render()
+    }
+  }, [selectedFrameId, hoveredFrame])
 
   useEffect(() => {
     if (rendererRef.current && canvasRef.current && containerRef.current) {
@@ -341,6 +350,10 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
       }, 100)
     } else {
       setSelectedFrame(null)
+      // Notify parent that selection was cleared
+      if (onFrameClick) {
+        onFrameClick(null as any, [], [])
+      }
       // Update scrollable and pannable state after zoom reset
       setTimeout(() => {
         setCanPan(rendererRef.current!.canPan())
@@ -503,8 +516,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
           frameData={hoveredFrameData}
           mouseX={mousePosition.x}
           mouseY={mousePosition.y}
-          primaryColor={primaryColor}
-          textColor={textColor}
+          fontFamily={fontFamily}
         />
       )}
     </div>

@@ -49,47 +49,42 @@ export function interpolateColor(
 }
 
 /**
- * Create a gradient between multiple colors
+ * Get color for a frame based on its relative size at the same depth level
+ * This is used by the FlameGraph renderer
  */
-export function createGradient(colors: string[], steps: number): [number, number, number][] {
-  if (colors.length < 2) {
-    throw new Error('Gradient requires at least 2 colors')
-  }
+export function getFrameColorBySameDepthRatio(
+  primaryColor: [number, number, number],
+  secondaryColor: [number, number, number],
+  frameValue: number,
+  totalValueAtDepth: number
+): [number, number, number] {
+  // Calculate this frame's relative size within its depth level
+  const relativeSize = totalValueAtDepth > 0 ? frameValue / totalValueAtDepth : 0
 
-  const rgbColors = colors.map(color => hexToRgb(color))
-  const gradient: [number, number, number][] = []
+  // Apply quadratic scale for better color differentiation
+  // Square the ratio to emphasize differences - small ratios become even smaller
+  const quadraticSize = relativeSize * relativeSize
 
-  for (let i = 0; i < steps; i++) {
-    const t = i / (steps - 1)
-    const segmentIndex = t * (rgbColors.length - 1)
-    const lowerIndex = Math.floor(segmentIndex)
-    const upperIndex = Math.min(lowerIndex + 1, rgbColors.length - 1)
-    const localT = segmentIndex - lowerIndex
+  // Blend factor: large frames = 0 (primary), small frames = 1 (secondary)
+  const blendFactor = 1 - quadraticSize
 
-    gradient.push(interpolateColor(rgbColors[lowerIndex], rgbColors[upperIndex], localT))
-  }
-
-  return gradient
+  return interpolateColor(primaryColor, secondaryColor, blendFactor)
 }
 
 /**
- * Get color for a frame based on its depth and value
+ * Get hex color for a frame based on its relative size at the same depth level
+ * This is used by the FlameGraph renderer
  */
-export function getFrameColor(
-  primaryColor: [number, number, number],
-  secondaryColor: [number, number, number],
-  depth: number,
-  maxDepth: number,
-  normalizedValue: number
-): [number, number, number] {
-  // Mix colors based on depth and value
-  const depthFactor = maxDepth > 0 ? depth / maxDepth : 0
-  const valueFactor = normalizedValue
-
-  // Combine depth and value factors
-  const mixFactor = (depthFactor * 0.6 + valueFactor * 0.4)
-
-  return interpolateColor(primaryColor, secondaryColor, mixFactor)
+export function getFrameColorHexBySameDepthRatio(
+  primaryColorHex: string,
+  secondaryColorHex: string,
+  frameValue: number,
+  totalValueAtDepth: number
+): string {
+  const primaryColor = hexToRgb(primaryColorHex)
+  const secondaryColor = hexToRgb(secondaryColorHex)
+  const color = getFrameColorBySameDepthRatio(primaryColor, secondaryColor, frameValue, totalValueAtDepth)
+  return rgbToHex(color[0], color[1], color[2])
 }
 
 /**
