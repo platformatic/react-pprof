@@ -196,7 +196,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           sample.locationId.forEach((locationId: any) => {
             const location = profile.location?.find((loc: any) => loc.id === locationId)
             if (location && location.line && location.line.length > 0) {
-              const func = profile.function?.find((f: any) => f.id === location.line[0].functionId)
+              const func = profile.function?.find((f: any) => f.id === location.line?.[0]?.functionId)
               if (func) {
                 const nameIndex = Number(func.name)
                 const funcName = (profile.stringTable as any)?.[nameIndex] || `func_${func.id}`
