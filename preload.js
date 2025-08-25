@@ -14,12 +14,7 @@ function toggleProfiler() {
     try {
       const profileData = profiler.stop();
       
-      let profile;
-      if (pprof.encodeSync) {
-        profile = pprof.encodeSync(profileData);
-      } else {
-        profile = pprof.encode(profileData);
-      }
+      const profile = profileData.encode();
       
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const filename = `cpu-profile-${timestamp}.pb`;
