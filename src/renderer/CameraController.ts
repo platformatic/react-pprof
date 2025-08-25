@@ -11,7 +11,7 @@ interface CameraState {
 
 /**
  * Manages camera transformations, zoom, and pan operations for flame graph
- * 
+ *
  * Core principles:
  * - Horizontal scaling only (vertical scale always 1)
  * - Root frame always at least viewport width (min scale = 1)
@@ -74,7 +74,7 @@ export class CameraController {
       0,  -2 / this.#viewportHeight,  0,
       -1,  1,  1
     )
-    
+
     return matrix
   }
 
@@ -96,31 +96,22 @@ export class CameraController {
    * Zoom to a specific frame
    * Frame will fill viewport width and be centered
    */
-  zoomToFrame(frameX1: number, frameX2: number, frameY1: number): void {
+  zoomToFrame(frameX1: number, frameX2: number): void {
     const frameWidth = frameX2 - frameX1
     const frameCenter = (frameX1 + frameX2) / 2
-    
-    
+
+
     // Scale so selected frame fills exactly the viewport width
     this.#camera.targetScale = this.#viewportWidth / frameWidth
-    
+
     // Enforce minimum scale (root frame can't be narrower than viewport)
     this.#camera.targetScale = Math.max(1, this.#camera.targetScale)
-    
+
     // Center the frame in the viewport
     const viewportCenter = this.#viewportWidth / 2
     this.#camera.targetX = viewportCenter - (frameCenter * this.#camera.targetScale)
-    
-    // Vertical positioning
-    if (this.#isFixedHeight) {
-      // Fixed height mode: position frame near top
-      this.#camera.targetY = 20 - frameY1
-    } else {
-      // Auto-height mode: no vertical offset needed
-      this.#camera.targetY = 0
-    }
-    
-    
+    this.#camera.targetY = 0 // Always keep vertical position at 0 (horizontal scaling only)
+
     // Apply bounds
     this.#applyBounds()
   }
@@ -141,21 +132,21 @@ export class CameraController {
   zoomAt(zoomFactor: number, centerX: number, centerY: number): void {
     // Calculate new scale
     const newScale = Math.max(1, this.#camera.targetScale * zoomFactor)
-    
+
     if (newScale === this.#camera.targetScale) {
       return; // No change needed
     }
-    
+
     // Get current world position of the zoom center
     const worldCenter = this.screenToWorld(centerX, centerY)
-    
+
     // Update scale
     this.#camera.targetScale = newScale
-    
+
     // Adjust position so the zoom center stays in the same place
     this.#camera.targetX = centerX - (worldCenter.x * this.#camera.targetScale)
     this.#camera.targetY = centerY - worldCenter.y
-    
+
     // Apply bounds
     this.#applyBounds()
   }
@@ -167,14 +158,14 @@ export class CameraController {
     // Calculate what the new position would be
     const newX = this.#camera.x + deltaX
     const newY = this.#camera.y + deltaY
-    
+
     // Apply bounds constraints to the new position
     const constrainedPosition = this.#calculateBoundedPosition(newX, newY)
-    
+
     // Update camera position to the constrained position
     this.#camera.x = constrainedPosition.x
     this.#camera.y = constrainedPosition.y
-    
+
     // Set targets to match current position (stops animation pull)
     this.#camera.targetX = this.#camera.x
     this.#camera.targetY = this.#camera.y
@@ -222,7 +213,7 @@ export class CameraController {
   screenToWorld(screenX: number, screenY: number): { x: number; y: number } {
     const worldX = (screenX - this.#camera.x) / this.#camera.scale
     const worldY = screenY - this.#camera.y
-    
+
     return { x: worldX, y: worldY }
   }
 
@@ -232,10 +223,10 @@ export class CameraController {
   #canPan(): boolean {
     // Check if horizontal panning is possible (when zoomed in)
     const canPanHorizontally = this.#camera.scale > 1
-    
+
     // Check if vertical panning is possible (in fixed height mode when content is scrollable)
     const canPanVertically = this.#isFixedHeight && this.isScrollable()
-    
+
     // Allow panning if either direction is pannable
     return canPanHorizontally || canPanVertically
   }
@@ -246,10 +237,10 @@ export class CameraController {
   #calculateBoundedPosition(desiredX: number, desiredY: number): { x: number; y: number } {
     let boundedX = desiredX
     let boundedY = desiredY
-    
+
     // Horizontal bounds
     const scaledContentWidth = this.#viewportWidth * this.#camera.scale
-    
+
     if (this.#camera.scale > 1) {
       // When zoomed in: prevent root from moving beyond viewport edges
       const maxX = 0; // Left edge of root at left edge of viewport
@@ -259,7 +250,7 @@ export class CameraController {
       // When at minimum scale: center horizontally (no panning allowed)
       boundedX = 0
     }
-    
+
     // Vertical bounds
     if (this.#isFixedHeight && this.isScrollable()) {
       // Fixed height mode with scrollable content
@@ -270,7 +261,7 @@ export class CameraController {
       // Auto-height mode: no vertical panning
       boundedY = 0
     }
-    
+
     return { x: boundedX, y: boundedY }
   }
 
@@ -280,16 +271,16 @@ export class CameraController {
   #applyBounds(): void {
     // Enforce minimum scale (root frame at least viewport width)
     this.#camera.targetScale = Math.max(1, this.#camera.targetScale)
-    
+
     // Use the bounded position calculation for target positions
     // We need to temporarily update the scale for bounds calculation
     const originalScale = this.#camera.scale
     this.#camera.scale = this.#camera.targetScale
-    
+
     const boundedPosition = this.#calculateBoundedPosition(this.#camera.targetX, this.#camera.targetY)
     this.#camera.targetX = boundedPosition.x
     this.#camera.targetY = boundedPosition.y
-    
+
     // Restore original scale
     this.#camera.scale = originalScale
   }

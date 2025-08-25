@@ -10,7 +10,10 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -21,6 +24,14 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "webpack.config.js", ".storybook"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"],
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "src/**/*.stories.tsx", 
+    "src/**/*.spec.ts", 
+    "src/**/*.test.ts",
+    "src/cli-template.tsx",
+    "src/cli-template.html"
+  ]
 }

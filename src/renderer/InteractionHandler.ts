@@ -49,7 +49,7 @@ export class InteractionHandler {
    */
   setSelectedFrame(frameId: string | null, triggerZoom: boolean = true): void {
     this.#selectedFrameId = frameId
-    
+
     // Only trigger zoom if requested (to avoid conflicts with click handler)
     if (triggerZoom) {
       if (frameId === null) {
@@ -61,7 +61,7 @@ export class InteractionHandler {
         if (frameData) {
           const frameX1 = frameData.x1 * this.#logicalWidth
           const frameX2 = frameData.x2 * this.#logicalWidth
-          this.#cameraController.zoomToFrame(frameX1, frameX2, frameData.y1)
+          this.#cameraController.zoomToFrame(frameX1, frameX2)
         }
       }
     }
@@ -123,7 +123,7 @@ export class InteractionHandler {
     const totalDistance = Math.sqrt(
       Math.pow(x - this.#dragStartX, 2) + Math.pow(y - this.#dragStartY, 2)
     )
-    
+
     // Don't process click if user dragged (either flag was set or distance exceeds threshold)
     if (this.#hasDragged || totalDistance > this.#dragThreshold) {
       this.#hasDragged = false
@@ -163,13 +163,13 @@ export class InteractionHandler {
 
       // Zoom to the clicked frame
       this.setSelectedFrame(clickedFrame.id, false); // Don't trigger zoom, we'll do it manually
-      
+
       // Find frame bounds for zooming
       const frameData = this.#frames.find(f => f.node.id === clickedFrame!.id)
       if (frameData) {
         const frameX1 = frameData.x1 * this.#logicalWidth
         const frameX2 = frameData.x2 * this.#logicalWidth
-        this.#cameraController.zoomToFrame(frameX1, frameX2, frameData.y1)
+        this.#cameraController.zoomToFrame(frameX1, frameX2)
       }
 
       const stackTrace = this.#getStackTrace(clickedFrame.id)
@@ -229,12 +229,12 @@ export class InteractionHandler {
 
     const stack: FlameNode[] = []
     let current: FlameNode | undefined = frame
-    
+
     while (current) {
       stack.unshift(current)
       current = current.parent
     }
-    
+
     return stack
   }
 
@@ -262,12 +262,12 @@ export class InteractionHandler {
    */
   #searchFrameTree(node: FlameNode, id: string): FlameNode | null {
     if (node.id === id) {return node}
-    
+
     for (const child of node.children) {
       const found = this.#searchFrameTree(child, id)
       if (found) {return found}
     }
-    
+
     return null
   }
 

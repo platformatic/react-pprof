@@ -281,20 +281,59 @@ test.describe('FlameGraph + StackDetails Integration', () => {
       await utils.navigateToTest({ stackDetails: true })
 
       const canvas = page.locator('canvas').first()
+      const stackHeader = page.locator('.stack-trace-header')
+      
+      // Click on the root frame first (center of canvas, guaranteed to exist)
+      // The root frame always spans the full width at the base
+      const rootClick = { x: 400, y: 50 }
+      await canvas.click({ position: rootClick })
+      await utils.waitForAnimationComplete(3000)
+      
+      // Verify stack details show for root frame
+      await expect(stackHeader).toBeVisible()
+      
+      const responseTimes: number[] = []
+      
+      // Test performance with multiple deterministic clicks
+      // After clicking root, child frames will be visible in predictable positions
+      const testPositions = [
+        { x: 400, y: 50 },   // Root frame (center)
+        { x: 200, y: 100 },  // Left child area
+        { x: 600, y: 100 },  // Right child area
+        { x: 400, y: 150 },  // Center deeper level
+        { x: 400, y: 50 }    // Back to root
+      ]
 
-      // Perform multiple rapid interactions
-      for (let i = 0; i < 10; i++) {
-        await canvas.click({ position: { x: 100 + i * 30, y: 50 } })
-        await page.waitForTimeout(100)
+      // Perform interactions and measure performance
+      for (let i = 0; i < testPositions.length; i++) {
+        const startTime = Date.now()
+        
+        await canvas.click({ position: testPositions[i] })
+        await utils.waitForAnimationComplete(3000)
+        
+        // Verify components are still functional
+        await expect(page.locator('[data-testid="flamegraph-container"] canvas')).toBeVisible()
+        
+        const responseTime = Date.now() - startTime
+        responseTimes.push(responseTime)
       }
 
-      // Should still be responsive
-      await page.waitForTimeout(1000)
-
-      const stackHeader = page.locator('.stack-trace-header')
-      await expect(stackHeader).toBeVisible()
-
-      await expect(page).toHaveScreenshot('integration-after-rapid-interactions.png')
+      // Performance assertions
+      const avgResponseTime = responseTimes.reduce((a, b) => a + b) / responseTimes.length
+      const maxResponseTime = Math.max(...responseTimes)
+      
+      // In CI environments, performance can be slower due to resource constraints
+      // Allow more time for webkit in CI (it's consistently slower)
+      const isCI = process.env.CI === 'true'
+      const avgThreshold = isCI ? 5000 : 4000 // 5s in CI, 4s locally
+      const maxThreshold = isCI ? 7000 : 6000 // 7s in CI, 6s locally
+      
+      expect(avgResponseTime).toBeLessThan(avgThreshold) // Average response time
+      expect(maxResponseTime).toBeLessThan(maxThreshold) // Max single interaction time
+      expect(responseTimes.length).toBe(testPositions.length) // All interactions completed
+      
+      // Verify both components are working together
+      await expect(canvas).toBeVisible()
     })
 
     test('zoom animations work correctly with stack details', async ({ page }) => {

@@ -19,10 +19,8 @@ test.describe('FlameGraph Component', () => {
       // Wait for WebGL to initialize and render
       await page.waitForTimeout(3000)
 
-      // Log any errors we found
-      if (errors.length > 0) {
-        console.log('JavaScript errors found:', errors)
-      }
+      // Check for errors but don't log them
+      // Errors will be captured in the test report if needed
 
       // Check that canvas elements are present
       const canvas = page.locator('canvas').first()

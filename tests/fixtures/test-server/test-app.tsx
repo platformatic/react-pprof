@@ -3,7 +3,11 @@ import ReactDOM from 'react-dom/client'
 import { FlameGraph } from '../../../src/components/FlameGraph'
 import { StackDetails } from '../../../src/components/StackDetails'
 import { FlameGraphTooltip } from '../../../src/components/FlameGraphTooltip'
-import { FlameNode } from '../../../src/renderer'
+import { HottestFramesBar } from '../../../src/components/HottestFramesBar'
+import { HottestFramesControls } from '../../../src/components/HottestFramesControls'
+import { FrameDetails } from '../../../src/components/FrameDetails'
+import { FullFlameGraph } from '../../../src/components/FullFlameGraph'
+import { FlameNode, FrameData } from '../../../src/renderer'
 import { fetchProfile } from '../../../src/parser'
 import { generateMockProfile } from '../mock-data'
 
@@ -12,10 +16,20 @@ declare global {
   interface Window {
     fetchProfile: typeof fetchProfile
     FlameGraphTooltip: typeof FlameGraphTooltip
+    waitForAnimationComplete: () => Promise<void>
   }
 }
 window.fetchProfile = fetchProfile
 window.FlameGraphTooltip = FlameGraphTooltip
+
+// Global promise resolver for animation completion
+let animationCompleteResolver: (() => void) | null = null
+
+window.waitForAnimationComplete = () => {
+  return new Promise<void>((resolve) => {
+    animationCompleteResolver = resolve
+  })
+}
 
 // Test component that renders FlameGraph with different configurations
 const TestApp: React.FC = () => {
@@ -28,18 +42,28 @@ const TestApp: React.FC = () => {
     setStackTrace(stack)
     setChildren(frameChildren)
 
-    // Log for test assertions
-    console.log('Frame clicked:', {
-      name: frame.name,
-      value: frame.value,
-      depth: frame.depth
-    })
+    // Store for test assertions without console output
+    // Tests can check this via window object if needed
+  }
+
+  const handleAnimationComplete = () => {
+    // Signal animation complete without console output
+    if (animationCompleteResolver) {
+      animationCompleteResolver()
+      animationCompleteResolver = null
+    }
   }
 
   // Get test configuration from URL params
   const params = new URLSearchParams(window.location.search)
   const testMode = params.get('mode') || 'default'
   const showStackDetails = params.get('stackDetails') === 'true'
+  const showHottestFrames = params.get('hottestFrames') === 'true'
+  const showHottestControls = params.get('hottestControls') === 'true'
+  const showFrameDetails = params.get('frameDetails') === 'true'
+  const showFullFlameGraph = params.get('fullFlameGraph') === 'true'
+  const showFlameGraph = params.get('flamegraph') !== 'false' // Default to true
+  const hottestHeight = params.get('hottestHeight') ? parseInt(params.get('hottestHeight')!) : 10
 
   // Generate consistent mock profile for testing
   const testProfile = useMemo(() => {
@@ -68,6 +92,7 @@ const TestApp: React.FC = () => {
       secondaryColor: '#ffcc66',
       backgroundColor: '#1e1e1e',
       textColor: '#ffffff',
+      fontFamily: 'monospace',
     },
     blue: {
       profile: testProfile,
@@ -77,6 +102,7 @@ const TestApp: React.FC = () => {
       secondaryColor: '#7dd3fc',
       backgroundColor: '#2c3e50',
       textColor: '#ffffff',
+      fontFamily: 'monospace',
     },
     small: {
       profile: testProfile,
@@ -86,38 +112,112 @@ const TestApp: React.FC = () => {
       secondaryColor: '#ffcc66',
       backgroundColor: '#1e1e1e',
       textColor: '#ffffff',
+      fontFamily: 'monospace',
     },
   }
 
   const config = configs[testMode] || configs.default
 
+  // Handle frame selection from HottestFramesBar
+  const handleHotFrameSelect = (frame: FrameData | null) => {
+    if (frame) {
+      // Convert FrameData to the format expected by other components
+      setSelectedFrame(frame)
+      // Would need to compute stack trace and children here
+      // For testing, we'll use simplified data
+      setStackTrace([frame] as any)
+      setChildren([])
+    }
+  }
+
   return (
     <div style={{
       display: 'flex',
+      flexDirection: 'column',
       gap: '20px',
       padding: '20px',
       backgroundColor: config.backgroundColor,
       minHeight: '100vh',
     }}>
-      <div style={{ flex: 1 }} data-testid="flamegraph-container">
-        <FlameGraph
-          {...config}
-          onFrameClick={handleFrameClick}
-        />
-      </div>
-      {showStackDetails && (
-        <div style={{ width: '400px' }} data-testid="stack-details-container">
-          <StackDetails
-            selectedFrame={selectedFrame}
-            stackTrace={stackTrace}
-            children={children}
-            backgroundColor={config.backgroundColor}
-            textColor={config.textColor}
+      {showHottestFrames && (
+        <div className="hottest-frames-bar" style={{ width: '100%' }} data-testid="hottest-frames-container">
+          <HottestFramesBar
+            profile={config.profile}
+            width={config.width}
+            height={hottestHeight}
             primaryColor={config.primaryColor}
             secondaryColor={config.secondaryColor}
+            backgroundColor={config.backgroundColor}
+            textColor={config.textColor}
+            selectedFrame={selectedFrame}
+            onFrameSelect={handleHotFrameSelect}
           />
         </div>
       )}
+      
+      {showHottestControls && (
+        <div style={{ width: '100%' }} data-testid="hottest-controls-container">
+          <HottestFramesControls
+            profile={config.profile}
+            selectedFrame={selectedFrame}
+            onFrameSelect={handleHotFrameSelect}
+            textColor={config.textColor}
+          />
+        </div>
+      )}
+
+      {showFullFlameGraph && (
+        <div style={{ width: '100%', height: '600px' }} data-testid="full-flamegraph-container">
+          <FullFlameGraph
+            profile={config.profile}
+            primaryColor={config.primaryColor}
+            secondaryColor={config.secondaryColor}
+            backgroundColor={config.backgroundColor}
+            textColor={config.textColor}
+            fontFamily={config.fontFamily}
+          />
+        </div>
+      )}
+
+      {showFrameDetails && (
+        <div style={{ width: '100%' }} data-testid="frame-details-container">
+          <FrameDetails
+            frame={selectedFrame}
+            selfTime={selectedFrame ? selectedFrame.value : undefined}
+            textColor={config.textColor}
+            fontFamily={config.fontFamily}
+          />
+        </div>
+      )}
+
+      <div style={{
+        display: 'flex',
+        gap: '20px',
+        flex: 1
+      }}>
+        {showFlameGraph && (
+          <div style={{ flex: 1 }} data-testid="flamegraph-container">
+            <FlameGraph
+              {...config}
+              onFrameClick={handleFrameClick}
+              onAnimationComplete={handleAnimationComplete}
+            />
+          </div>
+        )}
+        {showStackDetails && (
+          <div style={{ width: '400px' }} data-testid="stack-details-container">
+            <StackDetails
+              selectedFrame={selectedFrame}
+              stackTrace={stackTrace}
+              children={children}
+              backgroundColor={config.backgroundColor}
+              textColor={config.textColor}
+              primaryColor={config.primaryColor}
+              secondaryColor={config.secondaryColor}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
