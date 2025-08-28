@@ -18,17 +18,18 @@ Our profiling toolkit is designed from the ground up for integration into any No
 - **Standard Output Format**: Generates industry-standard pprof files compatible with the entire ecosystem
 
 ```bash
-# Integrate profiling into any Node.js application
+# Integrate profiling into any Node.js application (auto-start mode)
 flame run server.js
+# ... application runs with profiling active ...
+# Stop the app (Ctrl-C) to automatically save profile and generate flamegraph
 
-# Perfect for CI/CD and automated testing
-flame toggle  # Start profiling
+# Manual profiling mode for CI/CD and automated testing
+flame run --manual server.js
+# In another terminal, send SIGUSR2 signal to toggle profiling:
+kill -USR2 <PID>  # Start profiling
 # ... run your tests or load scenarios ...
-flame toggle  # Stop and save profile
-
-# Programmatic integration in your tools
-const { startProfiling } = require('@platformatic/flame')
-const { pid, toggleProfiler } = startProfiling('app.js')
+kill -USR2 <PID>  # Stop profiling and save profile
+# Stop the server (Ctrl-C) to automatically generate flamegraph
 ```
 
 ### 🎨 `react-pprof`: WebGL-Powered Visualization
@@ -80,23 +81,27 @@ npm install react-pprof  # For React integration
 
 ### 2. Profile Your Application
 ```bash
-# Profile any existing Node.js app
+# Profile any existing Node.js app (profiling starts immediately)
 flame run your-app.js
 
-# In another terminal, generate some load
+# In another terminal, generate some load while profiling is active
+curl http://localhost:3000/api/heavy-computation
 curl http://localhost:3000/api/heavy-computation
 
-# Toggle profiling to capture the workload
-flame toggle
-# ... make more requests ...
-flame toggle  # Stop profiling
+# Stop the app (Ctrl-C) to automatically save profile and generate HTML flamegraph
+# You'll see the exact file paths and browser URL in the output:
+# 🔥 CPU profile written to: cpu-profile-2025-08-28T12-00-00-000Z.pb
+# 🔥 Flamegraph generated: cpu-profile-2025-08-28T12-00-00-000Z.html
+# 🔥 Open file:///path/to/cpu-profile-2025-08-28T12-00-00-000Z.html in your browser
 ```
 
-### 3. Visualize the Results
+### 3. View the Results
 ```bash
-# Generate interactive HTML flamegraph
-flame generate cpu-profile-*.pb
+# The HTML flamegraph is automatically generated - just open it!
 open cpu-profile-*.html
+
+# Or generate from existing pprof files
+flame generate cpu-profile-*.pb
 ```
 
 ## Built on Open Source Foundation
@@ -122,7 +127,7 @@ Both packages are built with production-grade quality in mind:
 - **Protocol Buffer Output**: Standard pprof format for compatibility with entire profiling ecosystem
 - **Automatic Compression**: Efficient gzipped profile storage for CI/CD and automation
 - **Process Management**: Clean signal handling perfect for production and development workflows
-- **API-Driven Design**: Rich programmatic interface for building custom profiling solutions
+- **Flexible Control**: Auto-start mode for development, manual mode for production and CI/CD
 
 ## Real-World Performance
 
@@ -184,16 +189,19 @@ app.listen(3000)
 ```
 
 ```bash
-# Profile the Express app
+# Profile the Express app (profiling starts immediately)
 flame run server.js
 
-# Generate load and capture profile
-flame toggle
+# In another terminal, make requests while profiling is active
 curl http://localhost:3000/heavy
-flame toggle
+curl http://localhost:3000/heavy
+curl http://localhost:3000/heavy
 
-# Visualize results  
-flame generate cpu-profile-*.pb
+# Stop the server (Ctrl-C) to automatically save profile and generate HTML flamegraph
+# You'll see the exact file paths and browser URL in the output:
+# 🔥 CPU profile written to: cpu-profile-2025-08-28T15-30-45-123Z.pb
+# 🔥 Flamegraph generated: cpu-profile-2025-08-28T15-30-45-123Z.html
+# 🔥 Open file:///path/to/cpu-profile-2025-08-28T15-30-45-123Z.html in your browser
 ```
 
 ### [React](https://reactjs.org/) Application Integration
