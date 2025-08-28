@@ -225,8 +225,8 @@ export class TextRenderer {
       const availableWidth = (screenX2 - Math.max(0, screenX1)) - framePadding
       const maxTextWidth = Math.max(0, availableWidth - framePadding)
 
-      // Get text to render
-      const text = this.truncateText(node.name, maxTextWidth)
+      // Get text to render with filename and line number if available
+      const text = this.truncateText(this.formatFrameText(node), maxTextWidth)
       if (text.length === 0) {continue}
 
       // Get text color - use the configured text color
@@ -391,6 +391,17 @@ export class TextRenderer {
     gl.disableVertexAttribArray(colorLocation)
 
     gl.disable(gl.BLEND)
+  }
+
+  /**
+   * Format frame text with filename and line number if available
+   */
+  formatFrameText(node: FlameNode): string {
+    if (!node.fileName || !node.lineNumber) {
+      return node.name
+    }
+    
+    return `${node.name} at ${node.fileName}:${node.lineNumber}`
   }
 
   /**
