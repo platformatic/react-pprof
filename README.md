@@ -27,46 +27,33 @@ npm install @platformatic/react-pprof
 ## Quick Start
 
 ```tsx
-import { FlameGraph, StackDetails, fetchProfile } from '@platformatic/react-pprof'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { FullFlameGraph, fetchProfile } from '@platformatic/react-pprof'
 
 function App() {
   const [profile, setProfile] = useState(null)
-  const [selectedFrame, setSelectedFrame] = useState(null)
-  const [stackTrace, setStackTrace] = useState([])
-  const [children, setChildren] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Load the pprof profile
     fetchProfile('/path/to/profile.pprof')
       .then(setProfile)
-      .catch(console.error)
+      .catch(setError)
+      .finally(() => setLoading(false))
   }, [])
 
-  if (!profile) {
-    return <div>Loading profile...</div>
-  }
+  if (loading) return <div>Loading profile...</div>
+  if (error) return <div>Error: {error.message}</div>
+  if (!profile) return <div>No profile data</div>
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      <div style={{ flex: 1 }}>
-        <FlameGraph
-          profile={profile}
-          onFrameClick={(frame, stack, frameChildren) => {
-            setSelectedFrame(frame)
-            setStackTrace(stack)
-            setChildren(frameChildren)
-          }}
-        />
-      </div>
-      <div style={{ width: '400px' }}>
-        <StackDetails
-          selectedFrame={selectedFrame}
-          stackTrace={stackTrace}
-          children={children}
-        />
-      </div>
-    </div>
+    <FullFlameGraph
+      profile={profile}
+      height={600}
+      showHottestFrames={true}
+      showControls={true}
+      showStackDetails={true}
+    />
   )
 }
 ```
@@ -203,7 +190,7 @@ curl http://localhost:3002/profile > real-profile.pb
 react-pprof real-profile.pb
 ```
 
-#### Synthetic Profile Server (simple-server.js)  
+#### Synthetic Profile Server (simple-server.js)
 
 For testing and demonstration, use the synthetic server that generates compatible pprof data:
 
@@ -222,157 +209,27 @@ The synthetic server creates realistic function hierarchies and CPU distribution
 
 ## Components
 
-### FlameGraph
+This package provides several React components for visualizing pprof profiles. Click on each component name for detailed documentation, props, and usage examples:
 
-The main component for rendering interactive flame graphs using WebGL.
+### Core Components
 
-#### Props
+- **[FullFlameGraph](src/components/FullFlameGraph.md)** - Complete flame graph with navigation controls, hottest frames bar, and stack details panel
+- **[FlameGraph](src/components/FlameGraph.md)** - Core WebGL-powered flame graph visualization component
+- **[StackDetails](src/components/StackDetails.md)** - Detailed panel showing stack trace and child frames
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `profile` | `Profile` | **required** | The pprof profile data object |
-| `width` | `number \| string` | `'100%'` | Width of the component |
-| `height` | `number \| string` | `undefined` | Height of the component (auto-calculated if not specified) |
-| `primaryColor` | `string` | `'#ff4444'` | Primary color for high-weight frames |
-| `secondaryColor` | `string` | `'#ffcc66'` | Secondary color for low-weight frames |
-| `backgroundColor` | `string` | `'#1e1e1e'` | Background color of the canvas |
-| `textColor` | `string` | `'#ffffff'` | Color of frame labels |
-| `fontFamily` | `string` | `'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'` | Font family for labels |
-| `shadowOpacity` | `number` | `0.3` | Opacity of frame shadows |
-| `selectedOpacity` | `number` | `1.0` | Opacity of selected frames |
-| `hoverOpacity` | `number` | `0.9` | Opacity of hovered frames |
-| `unselectedOpacity` | `number` | `0.75` | Opacity of unselected frames |
-| `framePadding` | `number` | `5` | Padding around frame content (pixels) |
-| `zoomOnScroll` | `boolean` | `false` | Enable zooming with mouse wheel |
-| `scrollZoomSpeed` | `number` | `0.05` | Speed of scroll zoom (0.01 - 0.1) |
-| `scrollZoomInverted` | `boolean` | `false` | Invert scroll zoom direction |
-| `onFrameClick` | `function` | `undefined` | Callback when a frame is clicked |
-| `onZoomChange` | `function` | `undefined` | Callback when zoom level changes |
+### Navigation Components
 
-#### onFrameClick Callback
+- **[HottestFramesBar](src/components/HottestFramesBar.md)** - Horizontal bar showing frames sorted by self-time
+- **[HottestFramesControls](src/components/HottestFramesControls.md)** - Navigation controls for stepping through hottest frames
+- **[FrameDetails](src/components/FrameDetails.md)** - Compact frame information display
 
-```tsx
-onFrameClick: (frame: FrameData, stackTrace: FlameNode[], children: FlameNode[]) => void
-```
+### Utility Components
 
-**Parameters:**
-- `frame`: Details about the clicked frame
-- `stackTrace`: Complete call stack from root to selected frame
-- `children`: Array of all child frames
+- **[FlameGraphTooltip](src/components/FlameGraphTooltip.md)** - Tooltip component for displaying frame information on hover
 
-#### onZoomChange Callback
+### Getting Started
 
-```tsx
-onZoomChange: (zoomLevel: number) => void
-```
-
-**Parameters:**
-- `zoomLevel`: Current zoom level (1.0 = no zoom)
-
-#### Usage Examples
-
-**Basic Usage:**
-```tsx
-const profile = await fetchProfile('/profile.pprof')
-<FlameGraph profile={profile} />
-```
-
-**Custom Colors:**
-```tsx
-<FlameGraph
-  profile={profile}
-  primaryColor="#3498db"
-  secondaryColor="#87ceeb"
-  backgroundColor="#2c3e50"
-/>
-```
-
-**With Interaction Handling:**
-```tsx
-<FlameGraph
-  profile={profile}
-  onFrameClick={(frame, stack, children) => {
-    console.log('Selected:', frame.name)
-    console.log('Stack depth:', stack.length)
-    console.log('Children count:', children.length)
-  }}
-  onZoomChange={(level) => {
-    console.log('Zoom level:', level)
-  }}
-/>
-```
-
-**Custom Opacity Settings:**
-```tsx
-<FlameGraph
-  profile={profile}
-  selectedOpacity={1.0}
-  hoverOpacity={0.8}
-  unselectedOpacity={0.5}
-/>
-```
-
-**Enable Scroll Zooming:**
-```tsx
-<FlameGraph
-  profile={profile}
-  zoomOnScroll={true}
-  scrollZoomSpeed={0.1}
-  scrollZoomInverted={false}
-/>
-```
-
-### StackDetails
-
-A component that displays detailed information about the selected frame, including the complete stack trace and child frames.
-
-#### Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `selectedFrame` | `FrameData \| null` | **required** | Currently selected frame data |
-| `stackTrace` | `FlameNode[]` | `[]` | Complete stack trace from root to selected frame |
-| `children` | `FlameNode[]` | `[]` | Array of child frames |
-| `width` | `number \| string` | `'100%'` | Width of the component |
-| `height` | `number \| string` | `'auto'` | Height of the component |
-| `backgroundColor` | `string` | `'#1e1e1e'` | Background color |
-| `textColor` | `string` | `'#ffffff'` | Primary text color |
-| `primaryColor` | `string` | `'#ff4444'` | Accent color for headers and highlights |
-| `secondaryColor` | `string` | `'#ffcc66'` | Secondary accent color |
-
-#### Usage Examples
-
-**Basic Usage:**
-```tsx
-<StackDetails
-  selectedFrame={selectedFrame}
-  stackTrace={stackTrace}
-  children={children}
-/>
-```
-
-**Custom Styling:**
-```tsx
-<StackDetails
-  selectedFrame={selectedFrame}
-  stackTrace={stackTrace}
-  children={children}
-  backgroundColor="#f8f9fa"
-  textColor="#212529"
-  primaryColor="#007bff"
-  secondaryColor="#6c757d"
-/>
-```
-
-**Fixed Height with Scrolling:**
-```tsx
-<StackDetails
-  selectedFrame={selectedFrame}
-  stackTrace={stackTrace}
-  children={children}
-  height="600px"
-/>
-```
+For most use cases, start with **FullFlameGraph** as it provides a complete profiling interface out of the box. Use the individual components when you need more control over the layout and functionality.
 
 ## Data Types
 
@@ -415,36 +272,41 @@ interface FlameNode {
 
 ## Theming
 
-The `<FlameGraph />` component accepts several colors to configure its appearance:
+Both the `<FlameGraph />` and `<FullFlameGraph />` components accept several color properties to configure their appearance:
 
-- `backgroundColor` is obvious
-- `textColor` is also obvious
-- `primaryColor` for root node or nodes near 100% of their parent's weight
-- `secondaryColor` for nodes near 0% of their parent's weight
+- `backgroundColor` - Background color of the flame graph
+- `textColor` - Color of text labels and UI elements
+- `primaryColor` - Color for root nodes or nodes near 100% of their parent's weight
+- `secondaryColor` - Color for nodes near 0% of their parent's weight
 
-The graph will use a gradient of colors between the primary and secondary depending
-on their weight ratio compared to their parent.
+The flame graph uses a gradient of colors between the primary and secondary colors depending on each frame's weight ratio compared to its parent.
 
 ```tsx
-// Traditional Red/Orange
-<FlameGraph
+// Traditional Red/Orange theme
+<FullFlameGraph
+  profile={profile}
   primaryColor="#ff4444"
   secondaryColor="#ffcc66"
   backgroundColor="#1e1e1e"
+  textColor="#ffffff"
 />
 
-// Greens
-<FlameGraph
+// Green theme
+<FullFlameGraph
+  profile={profile}
   primaryColor="#2ecc71"
   secondaryColor="#27ae60"
   backgroundColor="#1e1e1e"
+  textColor="#ffffff"
 />
 
-// Blues
-<FlameGraph
+// Blue theme
+<FullFlameGraph
+  profile={profile}
   primaryColor="#2563eb"
   secondaryColor="#7dd3fc"
   backgroundColor="#2c3e50"
+  textColor="#ffffff"
 />
 ```
 
@@ -457,12 +319,6 @@ on their weight ratio compared to their parent.
 - **Hover Frame**: Show tooltip with frame details
 - **Mouse Move**: Tooltip follows cursor
 - **Mouse Leave**: Hide tooltip
-
-### Keyboard Controls
-
-- **Tab**: Navigate through interactive elements
-- **Enter**: Activate focused element
-- **Escape**: Reset to default state
 
 ## Testing
 
@@ -506,137 +362,4 @@ npm install
 
 # Start development server
 npm run storybook
-```
-
-## Examples
-
-### Complete Integration Example
-
-```tsx
-import { FlameGraph, StackDetails, fetchProfile } from '@platformatic/react-pprof'
-import { useState, useEffect } from 'react'
-
-function ProfileViewer() {
-  const [profile, setProfile] = useState(null)
-  const [selectedFrame, setSelectedFrame] = useState(null)
-  const [stackTrace, setStackTrace] = useState([])
-  const [children, setChildren] = useState([])
-  const [zoomLevel, setZoomLevel] = useState(1.0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    fetchProfile('/api/profile/cpu')
-      .then(setProfile)
-      .catch(setError)
-      .finally(() => setLoading(false))
-  }, []);
-
-  if (loading) return <div>Loading profile...</div>
-  if (error) return <div>Error: {error.message}</div>
-  if (!profile) return <div>No profile data</div>
-
-  return (
-    <div style={{
-      display: 'flex',
-      height: '100vh',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      {/* Main flame graph */}
-      <div style={{ flex: 1, padding: '20px' }}>
-        <h1>CPU Profile</h1>
-        <FlameGraph
-          profile={profile}
-          width="100%"
-          height="600px"
-          onFrameClick={(frame, stack, frameChildren) => {
-            setSelectedFrame(frame)
-            setStackTrace(stack)
-            setChildren(frameChildren)
-          }}
-          onZoomChange={setZoomLevel}
-          zoomOnScroll={true}
-        />
-        <p>Zoom Level: {zoomLevel.toFixed(2)}x</p>
-      </div>
-
-      {/* Details panel */}
-      <div style={{
-        width: '400px',
-        borderLeft: '1px solid #ccc',
-        padding: '20px'
-      }}>
-        <StackDetails
-          selectedFrame={selectedFrame}
-          stackTrace={stackTrace}
-          children={children}
-        />
-      </div>
-    </div>
-  )
-}
-```
-
-### Responsive Layout Example
-
-```tsx
-import { FlameGraph, StackDetails, fetchProfile } from '@platformatic/react-pprof'
-import { useState, useEffect } from 'react'
-
-function ResponsiveProfileViewer() {
-  const [profile, setProfile] = useState(null)
-  const [selectedFrame, setSelectedFrame] = useState(null)
-  const [stackTrace, setStackTrace] = useState([])
-  const [children, setChildren] = useState([])
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    fetchProfile('/profile.pprof').then(setProfile)
-  }, [])
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  if (!profile) return <div>Loading...</div>
-
-  return (
-    <div style={{
-      display: 'flex',
-      flexDirection: isMobile ? 'column' : 'row',
-      height: '100vh'
-    }}>
-      <div style={{ flex: 1 }}>
-        <FlameGraph
-          profile={profile}
-          width="100%"
-          height={isMobile ? '50vh' : '100vh'}
-          onFrameClick={(frame, stack, frameChildren) => {
-            setSelectedFrame(frame)
-            setStackTrace(stack)
-            setChildren(frameChildren)
-          }}
-        />
-      </div>
-
-      <div style={{
-        width: isMobile ? '100%' : '400px',
-        height: isMobile ? '50vh' : '100vh',
-        overflow: 'auto'
-      }}>
-        <StackDetails
-          selectedFrame={selectedFrame}
-          stackTrace={stackTrace}
-          children={children}
-        />
-      </div>
-    </div>
-  );
-}
 ```
