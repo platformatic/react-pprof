@@ -13,6 +13,10 @@ const { values: args, positionals } = parseArgs({
       type: 'string',
       short: 'o'
     },
+    title: {
+      type: 'string',
+      short: 't'
+    },
     help: {
       type: 'boolean',
       short: 'h'
@@ -27,17 +31,20 @@ Usage: node cli.js [options] <pprof-file>
 
 Options:
   -o, --output <file>   Output HTML file (default: <pprof-file>.html)
+  -t, --title <title>   Title for the generated flamegraph (default: filename)
   -h, --help           Show this help message
 
 Examples:
   node cli.js profile.pb.gz
   node cli.js -o flamegraph.html profile.pb.gz
+  node cli.js -t "My App CPU Profile" profile.pb.gz
 `)
   process.exit(0)
 }
 
 const pprofFile = positionals[0]
 const outputFile = args.output || `${path.basename(pprofFile, path.extname(pprofFile))}.html`
+const title = args.title || path.basename(pprofFile)
 
 // Validate pprof file exists
 if (!fs.existsSync(pprofFile)) {
@@ -111,8 +118,9 @@ const htmlWithInlineJS = htmlTemplate.replace(
   `<script defer src="${path.basename(jsPath)}"></script>`
 )
 
-// Inject the profile data and filename into the template
+// Inject the profile data, title, and filename into the template
 const finalHTML = htmlWithInlineJS
+  .replace(/{{TITLE}}/g, title)
   .replace(/{{FILENAME}}/g, path.basename(pprofFile))
   .replace('{{PROFILE_DATA}}', profileDataJS)
 
