@@ -228,16 +228,48 @@ function ProfileDashboard() {
 }
 ```
 
+### Watt Application Server Integration
+
+[Watt](https://docs.platformatic.dev/docs/watt/overview), Platformatic's Node.js application server, includes built-in CPU profiling capabilities that work seamlessly with our flamegraph ecosystem:
+
+```bash
+# Start profiling all services in your Watt application
+wattpm pprof start
+
+# Generate load on your application
+curl http://localhost:3000/api/users
+curl http://localhost:3000/api/orders
+
+# Stop profiling and save pprof files
+wattpm pprof stop
+# Saves: pprof-api-service-2025-08-28T12-00-00-000Z.pb
+#        pprof-database-service-2025-08-28T12-00-00-000Z.pb
+
+# Generate interactive flamegraphs with flame
+flame generate pprof-api-service-*.pb
+flame generate pprof-database-service-*.pb
+```
+
+**Watt Profiling Features:**
+- **Service-Level Profiling**: Profile individual microservices or entire applications
+- **Zero Configuration**: Built-in profiler with no additional setup required
+- **Production Ready**: Minimal overhead (~1-5% CPU) suitable for production environments
+- **Remote Profiling**: Profile services running in any environment
+- **Standard Output**: Generates pprof-compatible files that work with our visualization tools
+
+This integration makes it incredibly easy to profile complex microservice architectures and identify performance bottlenecks across your entire application stack.
+
 ## What Makes This Special
 
 Unlike traditional profiling tools, our approach combines:
 
 1. **Integration-First Design**: `@platformatic/flame` is built to integrate seamlessly into any existing Node.js application, CI/CD pipeline, or development tool
-2. **Modern Web Technology**: [React](https://reactjs.org/) components with [WebGL](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API) acceleration
-3. **Zero-Config Experience**: Drop-in profiling with no code changes required  
-4. **Production Ready**: Battle-tested performance and reliability in real-world applications
-5. **Ecosystem Compatibility**: Standard pprof output works with the entire profiling toolchain
-6. **Beautiful Visualization**: Professional-grade flamegraphs that actually help you understand your code
+2. **Application Server Integration**: Built-in profiling in Watt for microservice architectures with service-level granularity
+3. **Modern Web Technology**: [React](https://reactjs.org/) components with [WebGL](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API) acceleration
+4. **Zero-Config Experience**: Drop-in profiling with no code changes required  
+5. **Production Ready**: Battle-tested performance and reliability in real-world applications
+6. **Ecosystem Compatibility**: Standard pprof output works with the entire profiling toolchain
+7. **Beautiful Visualization**: Professional-grade flamegraphs that actually help you understand your code
 
 ## Getting Started Today
 
