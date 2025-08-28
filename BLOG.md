@@ -1,12 +1,18 @@
 # 🔥 Introducing Next-Generation Flamegraph Visualization for Node.js
 
-Today we're excited to announce a revolutionary new approach to CPU profiling and flamegraph visualization in Node.js. At the heart of this ecosystem is `@platformatic/flame` - a profiling toolkit built specifically for seamless integration into any Node.js application or development workflow. Paired with `react-pprof` for stunning WebGL-powered visualization, these packages deliver an unparalleled developer experience.
+Today we're excited to announce a revolutionary new approach to CPU profiling and flamegraph visualization in Node.js. We've built a complete profiling ecosystem that spans from individual applications to enterprise microservice architectures, with beautiful visualization that makes performance optimization intuitive and actionable.
 
-## The Power of Two: `@platformatic/flame` and `react-pprof`
+## A Complete Profiling Ecosystem
 
-We've developed a comprehensive profiling ecosystem that combines the best of both worlds: powerful data capture with stunning visualization.
+Our comprehensive solution consists of three powerful components working together:
 
-### 🔥 `@platformatic/flame`: Built for Seamless Integration
+- **`@platformatic/flame`**: Universal profiling toolkit for any Node.js application
+- **`react-pprof`**: WebGL-powered visualization components and standalone HTML generation
+- **[Watt](https://docs.platformatic.dev/docs/watt/overview) Integration**: Built-in profiling for the Node.js Application Serveri with service-level granularity
+
+Together, these tools provide everything you need for Node.js performance analysis, from development to production.
+
+### 🔥 `@platformatic/flame`: Universal Node.js Profiling
 
 Our profiling toolkit is designed from the ground up for integration into any Node.js application or development workflow:
 
@@ -64,6 +70,47 @@ function ProfileViewer() {
   )
 }
 ```
+
+### 🏗️ Watt: Enterprise Application Server Integration
+
+[Watt](https://docs.platformatic.dev/docs/watt/overview), Platformatic's Node.js application server, provides built-in profiling capabilities designed for microservice architectures:
+
+- **Service-Level Profiling**: Profile individual microservices or entire applications with granular control
+- **Zero Configuration**: Built-in profiler with no additional setup required
+- **Production Ready**: Minimal overhead (~1-5% CPU) suitable for production environments  
+- **Remote Profiling**: Profile services running in any environment
+- **Automatic Discovery**: Auto-detects running services and provides simple commands
+
+```bash
+# Start profiling all services in your Watt application
+wattpm pprof start
+
+# Or target specific services
+wattpm pprof start api-service database-service
+
+# Generate load, then stop profiling
+wattpm pprof stop
+# Automatically saves pprof files for each service
+```
+
+## What is a Flamegraph?
+
+A flamegraph is a powerful visualization technique that shows exactly where your Node.js application spends its CPU time. Think of it as an X-ray for your code's performance.
+
+### How to Read a Flamegraph
+
+- **Width = Time**: Wider sections represent functions that consumed more CPU time
+- **Height = Call Depth**: Taller stacks show deeper function call chains  
+- **Colors = Heat**: Warmer colors (reds/oranges) indicate functions using more CPU at their stack level
+- **Click to Zoom**: Interactive exploration lets you drill down into specific code paths
+
+**What to Look For:**
+- **Wide Plateaus**: Functions consuming significant CPU time - prime optimization candidates
+- **Tall Spires**: Deep call stacks that may indicate complex or recursive logic
+- **Multiple Peaks**: Different execution phases or code paths in your application
+- **Dominant Sections**: The largest areas show where most CPU time is spent
+
+Flamegraphs turn complex performance data into an intuitive visual map, making it easy to spot bottlenecks and understand your application's behavior at a glance.
 
 ## The Complete Workflow
 
