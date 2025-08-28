@@ -91,6 +91,10 @@ wattpm pprof start api-service database-service
 # Generate load, then stop profiling
 wattpm pprof stop
 # Automatically saves pprof files for each service
+
+# Generate interactive flamegraphs with flame
+flame generate pprof-api-service-*.pb
+flame generate pprof-database-service-*.pb
 ```
 
 ## What is a Flamegraph?
