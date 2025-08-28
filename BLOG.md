@@ -157,7 +157,7 @@ flame generate cpu-profile-*.pb
 
 ## Built on Open Source Foundation
 
-Our profiling ecosystem builds upon excellent prior work in the Node.js performance analysis space. We're particularly inspired by [`0x`](https://github.com/davidmarkclements/0x), the pioneering flamegraph tool for Node.js created by David Mark Clements, which introduced many developers to the power of flamegraph visualization.
+Our profiling ecosystem builds upon excellent prior work in the Node.js performance analysis space. We're particularly inspired by [`0x`](https://github.com/davidmarkclements/0x), the pioneering flamegraph tool for Node.js created by David Mark Clements, which introduced many developers to the power of flamegraph visualization. The success of 0x later led to [Clinic.js](https://clinicjs.org/), a comprehensive performance toolkit built on top of 0x's foundation.
 
 Our toolkit is powered by Datadog's generous open source contribution: the [`@datadog/pprof`](https://github.com/DataDog/pprof-nodejs) library. This battle-tested Node.js profiling library provides the core CPU sampling and pprof data export functionality that makes our entire toolkit possible.
 
