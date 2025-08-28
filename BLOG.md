@@ -259,6 +259,8 @@ flame generate pprof-database-service-*.pb
 
 This integration makes it incredibly easy to profile complex microservice architectures and identify performance bottlenecks across your entire application stack.
 
+For a complete guide on profiling with Watt, including advanced workflows and best practices, see our [Profiling with Watt guide](docs/guides/profiling-with-watt).
+
 ## What Makes This Special
 
 Unlike traditional profiling tools, our approach combines:
