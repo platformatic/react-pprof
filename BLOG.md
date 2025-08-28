@@ -157,13 +157,13 @@ flame generate cpu-profile-*.pb
 
 ## Built on Open Source Foundation
 
-Our profiling ecosystem builds upon excellent prior work in the Node.js performance analysis space. We're particularly inspired by [`0x`](https://github.com/davidmarkclements/0x), the pioneering flamegraph tool for Node.js created by David Mark Clements, which introduced many developers to the power of flamegraph visualization. The success of 0x later led to [Clinic.js](https://clinicjs.org/), a comprehensive performance toolkit created by NearForm and built on top of 0x's foundation.
+Our profiling ecosystem builds upon excellent prior work in the Node.js performance analysis space. We're particularly inspired by [`0x`](https://github.com/davidmarkclements/0x), the pioneering flamegraph tool for Node.js created by David Mark Clements, which introduced many developers to the power of flamegraph visualization. The success of 0x later led to [Clinic.js](https://clinicjs.org/), a comprehensive performance toolkit created by [NearForm](https://www.nearform.com/) and built on top of 0x's foundation.
 
 While these tools provided valuable inspiration, our approach represents a novel direction: combining modern web technologies with integration-first design to create a unified ecosystem that spans from individual development to enterprise microservice architectures.
 
-Our toolkit is powered by Datadog's generous open source contribution: the [`@datadog/pprof`](https://github.com/DataDog/pprof-nodejs) library. This battle-tested Node.js profiling library provides the core CPU sampling and pprof data export functionality that makes our entire toolkit possible.
+Our toolkit is powered by [Datadog's](https://www.datadoghq.com/) generous open source contribution: the [`@datadog/pprof`](https://github.com/DataDog/pprof-nodejs) library. This battle-tested Node.js profiling library provides the core CPU sampling and pprof data export functionality that makes our entire toolkit possible.
 
-We're grateful to both the 0x project for pioneering Node.js flamegraph analysis and to Datadog for open sourcing this critical infrastructure, which together enable the Node.js community to have access to production-grade profiling capabilities that were previously only available in enterprise monitoring solutions.
+We're grateful to both the 0x project for pioneering Node.js flamegraph analysis and to [Datadog](https://www.datadoghq.com/) for open sourcing this critical infrastructure, which together enable the Node.js community to have access to production-grade profiling capabilities that were previously only available in enterprise monitoring solutions.
 
 ## Technical Excellence
 
