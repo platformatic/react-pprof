@@ -208,3 +208,6 @@ storybook-static
 # Frontend test artifacts
 playwright-report
 test-results
+
+# Ignore the cli build files
+cli-build

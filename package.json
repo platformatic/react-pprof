@@ -1,13 +1,14 @@
 {
   "name": "@platformatic/react-pprof",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "React component for visualizing pprof with WebGL",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "cli.js"
+    "cli.js",
+    "cli-build"
   ],
   "bin": {
     "react-pprof": "./cli.js"
@@ -15,6 +16,7 @@
   "scripts": {
     "build": "tsc",
     "build:cli": "webpack --config webpack.cli.config.js",
+    "prepare": "npm run build && npm run build:cli",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
