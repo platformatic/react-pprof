@@ -65,7 +65,7 @@
   "dependencies": {
     "@storybook/react-webpack5": "^9.0.17",
     "gl-matrix": "^3.4.3",
-    "pprof-format": "github:datadog/pprof-format#a1c03e5da852d1f76d149ea1d3fcd660cdb19e4c",
+    "pprof-format": "^2.2.1",
     "protobufjs": "^7.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
