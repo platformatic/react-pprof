@@ -21,7 +21,7 @@ test.describe('FlameGraphTooltip Component', () => {
       await expect(tooltip).toBeVisible()
 
       // Check tooltip content - no more 'Function:' prefix
-      await expect(tooltip.locator('text=Value:')).toBeVisible()
+      await expect(tooltip.locator('text=Samples:')).toBeVisible()
       await expect(tooltip.locator('text=Total Time:')).toBeVisible()
       await expect(tooltip.locator('text=Self Time:')).toBeVisible()
       await expect(tooltip.locator('text=Depth:')).toBeVisible()
@@ -226,7 +226,7 @@ test.describe('FlameGraphTooltip Component', () => {
       await expect(tooltip).toBeVisible()
 
       // Check for comma-formatted numbers
-      const valueText = await tooltip.locator('text=Value:').locator('..').textContent()
+      const valueText = await tooltip.locator('text=Samples:').locator('..').textContent()
       expect(valueText).toMatch(/[\d,]+/)
     })
 
