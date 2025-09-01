@@ -1,4 +1,4 @@
-# @platformatic/react-pprof
+# react-pprof
 
 A React component for visualizing pprof profiles using WebGL.
 
@@ -21,14 +21,14 @@ A React component for visualizing pprof profiles using WebGL.
 ## Installation
 
 ```bash
-npm install @platformatic/react-pprof
+npm install react-pprof
 ```
 
 ## Quick Start
 
 ```tsx
 import React, { useState, useEffect } from 'react'
-import { FullFlameGraph, fetchProfile } from '@platformatic/react-pprof'
+import { FullFlameGraph, fetchProfile } from 'react-pprof'
 
 function App() {
   const [profile, setProfile] = useState(null)
@@ -68,10 +68,10 @@ Install the CLI globally or use via npx:
 
 ```bash
 # Install globally
-npm install -g @platformatic/react-pprof
+npm install -g react-pprof
 
 # Or use with npx (no installation required)
-npx @platformatic/react-pprof profile.pb
+npx react-pprof profile.pb
 ```
 
 ### CLI Usage
