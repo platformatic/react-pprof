@@ -38,6 +38,14 @@
   ],
   "author": "Platformatic Inc. <oss@platformatic.dev> (http://platformatic.dev/)",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/platformatic/react-pprof.git"
+  },
+  "bugs": {
+    "url": "https://github.com/platformatic/react-pprof/issues"
+  },
+  "homepage": "https://github.com/platformatic/react-pprof#readme",
   "devDependencies": {
     "@datadog/pprof": "^5.9.0",
     "@playwright/test": "^1.54.1",
