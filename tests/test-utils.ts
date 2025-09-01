@@ -17,6 +17,7 @@ export class FlameGraphTestUtils {
     fullFlameGraph?: boolean;
     flamegraph?: boolean;
     hottestHeight?: number;
+    prePopulateStackDetails?: boolean;
   }) {
     const params = new URLSearchParams()
     if (config?.mode) {params.set('mode', config.mode)}
@@ -27,6 +28,7 @@ export class FlameGraphTestUtils {
     if (config?.fullFlameGraph) {params.set('fullFlameGraph', 'true')}
     if (config?.flamegraph === false) {params.set('flamegraph', 'false')}
     if (config?.hottestHeight) {params.set('hottestHeight', config.hottestHeight.toString())}
+    if (config?.prePopulateStackDetails) {params.set('prePopulateStackDetails', 'true')}
 
     const baseUrl = 'http://localhost:3100'
     const url = `${baseUrl}?${params.toString()}`

@@ -141,8 +141,10 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
       id: 'root',
       name: 'all',
       value: totalValue,
+      selfValue: 0, // Will be calculated
       x: 0,
       width: 1,
+      selfWidth: 0, // Will be calculated
       depth: 0,
       children: []
     }
@@ -168,8 +170,10 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
             id: nodeId,
             name: functionName,
             value: 0,
+            selfValue: 0, // Will be calculated
             x: 0,
             width: 0,
+            selfWidth: 0, // Will be calculated
             depth: i + 1,
             children: [],
             parent: currentParent,
@@ -189,20 +193,22 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
       }
     }
 
-    // Calculate self-time for each frame
-    // Self-time = node's total value - sum of direct children's values
-    // In a flame graph, each node's value includes all its descendants,
-    // so we only subtract the direct children's values to get self-time
-    const calculateSelfTime = (node: FlameNode): number => {
+    // Calculate self-time values for all nodes
+    const calculateSelfTimes = (node: FlameNode) => {
       const childrenTotalValue = node.children.reduce((sum, child) => sum + child.value, 0)
-      const selfTime = node.value - childrenTotalValue
-      // Self-time should never be negative due to rounding errors
-      return Math.max(0, selfTime)
+      node.selfValue = Math.max(0, node.value - childrenTotalValue)
+      node.selfWidth = node.selfValue / root.value
+      
+      // Recursively process children
+      node.children.forEach(calculateSelfTimes)
     }
+    
+    calculateSelfTimes(root)
 
-    // Collect all frames with their self-time
+    // Collect all frames with their pre-computed self-time
     const collectFrames = (node: FlameNode) => {
-      const selfTime = calculateSelfTime(node)
+      // Use pre-computed self-time from FlameDataProcessor
+      const selfTime = node.selfValue
 
       // Include ALL frames except root, even with zero self-time
       if (node.id !== 'root') {
@@ -211,9 +217,11 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
             id: node.id,
             name: node.name,
             value: selfTime,
+            selfValue: node.selfValue,
             depth: node.depth,
             x: 0, // Will be calculated later
             width: 0, // Will be calculated later
+            selfWidth: node.selfWidth,
             functionName: node.name,
             fileName: node.fileName,
             lineNumber: node.lineNumber,

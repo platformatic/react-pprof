@@ -5,11 +5,13 @@ export interface FlameNode {
   id: string
   name: string
   value: number
+  selfValue: number
   children: FlameNode[]
   parent?: FlameNode
   depth: number
   x: number
   width: number
+  selfWidth: number
   fileName?: string
   lineNumber?: number
 }
@@ -18,9 +20,11 @@ export interface FrameData {
   id: string
   name: string
   value: number
+  selfValue: number
   depth: number
   x: number
   width: number
+  selfWidth: number
   functionName: string
   fileName?: string
   lineNumber?: number
@@ -170,6 +174,22 @@ export class FlameDataProcessor {
     return this.#searchFrameTree(this.#data, id)
   }
 
+  /**
+   * Get self-time value for a specific frame
+   */
+  getFrameSelfTime(frameId: string): number {
+    const frame = this.findFrameById(frameId)
+    return frame?.selfValue || 0
+  }
+
+  /**
+   * Get self-time as percentage of total profile time for a specific frame
+   */
+  getFrameSelfTimePercentage(frameId: string): number {
+    const frame = this.findFrameById(frameId)
+    return frame?.selfWidth || 0
+  }
+
   #profileToFlameGraph(profile: Profile): FlameNode {
     const samples: PprofSample[] = []
     let totalValue = 0
@@ -258,8 +278,10 @@ export class FlameDataProcessor {
       id: 'root',
       name: 'all',
       value: totalValue,
+      selfValue: 0, // Will be calculated later
       x: 0,
       width: 1,
+      selfWidth: 0, // Will be calculated later
       depth: 0,
       children: []
     }
@@ -285,8 +307,10 @@ export class FlameDataProcessor {
             id: nodeId,
             name: functionName,
             value: 0,
+            selfValue: 0, // Will be calculated later
             x: 0,
             width: 0,
+            selfWidth: 0, // Will be calculated later
             depth: i + 1,
             children: [],
             parent: currentParent,
@@ -298,7 +322,7 @@ export class FlameDataProcessor {
           currentParent.children.push(node)
         }
 
-        // Accumulate sample value
+        // Accumulate sample value - this is correct for flame graphs
         node.value += sample.value
 
         currentParent = node
@@ -308,6 +332,9 @@ export class FlameDataProcessor {
 
     // Calculate positions and widths
     this.#calculateLayout(root)
+
+    // Calculate self-time values and percentages
+    this.#calculateSelfTimes(root)
 
     return root
   }
@@ -334,6 +361,26 @@ export class FlameDataProcessor {
       // Recursively calculate layout for children
       this.#calculateLayout(child)
     }
+  }
+
+
+  /**
+   * Calculate self-time values and percentages for all nodes in the tree
+   */
+  #calculateSelfTimes(root: FlameNode): void {
+    const traverse = (node: FlameNode) => {
+      // Calculate self-time value (node's time minus children's time)
+      const childrenTotalValue = node.children.reduce((sum, child) => sum + child.value, 0)
+      node.selfValue = Math.max(0, node.value - childrenTotalValue)
+      
+      // Calculate self-time as percentage of total profile time
+      node.selfWidth = node.selfValue / root.value
+      
+      // Recursively process children
+      node.children.forEach(traverse)
+    }
+    
+    traverse(root)
   }
 
   #traverseFlameGraph(node: FlameNode, callback: (node: FlameNode) => void): void {

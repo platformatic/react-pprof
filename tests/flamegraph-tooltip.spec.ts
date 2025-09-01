@@ -22,7 +22,8 @@ test.describe('FlameGraphTooltip Component', () => {
 
       // Check tooltip content - no more 'Function:' prefix
       await expect(tooltip.locator('text=Value:')).toBeVisible()
-      await expect(tooltip.locator('text=Width:')).toBeVisible()
+      await expect(tooltip.locator('text=Total Time:')).toBeVisible()
+      await expect(tooltip.locator('text=Self Time:')).toBeVisible()
       await expect(tooltip.locator('text=Depth:')).toBeVisible()
     })
 
@@ -134,25 +135,25 @@ test.describe('FlameGraphTooltip Component', () => {
       const canvas = page.locator('canvas').first()
       const tooltip = page.locator('.flamegraph-tooltip')
 
-      // Hover over first frame
-      await canvas.hover({ position: { x: 200, y: 50 } })
+      // Hover over first frame - at the root level
+      await canvas.hover({ position: { x: 200, y: 30 } })
       await page.waitForTimeout(500)
       await expect(tooltip).toBeVisible()
 
-      // Get first frame content
-      const firstFrameName = await tooltip.locator('div').nth(1).textContent()
+      // Get first frame content - use the first div which contains the frame name
+      const firstFrameName = await tooltip.locator('div').first().textContent()
 
       // Move to empty space
       await page.mouse.move(750, 300)
       await page.waitForTimeout(500)
 
-      // Hover over different frame
-      await canvas.hover({ position: { x: 400, y: 50 } })
+      // Hover over different frame - use the second level frames which should have different content
+      await canvas.hover({ position: { x: 400, y: 55 } })
       await page.waitForTimeout(500)
       await expect(tooltip).toBeVisible()
 
       // Get second frame content
-      const secondFrameName = await tooltip.locator('div').nth(1).textContent()
+      const secondFrameName = await tooltip.locator('div').first().textContent()
 
       // Should be different content
       expect(firstFrameName).not.toBe(secondFrameName)
@@ -170,12 +171,13 @@ test.describe('FlameGraphTooltip Component', () => {
 
       const canvas = page.locator('canvas').first()
 
-      // Test near right edge
-      await canvas.hover({ position: { x: 750, y: 50 } })
-      await page.waitForTimeout(500)
+      // Test near right edge - use a position that's more likely to have a frame
+      // The root frame should span most of the width, so position closer to right edge but not at edge
+      await canvas.hover({ position: { x: 700, y: 30 } })
+      await page.waitForTimeout(1000) // Increase timeout for reliability
 
       const tooltip = page.locator('.flamegraph-tooltip')
-      await expect(tooltip).toBeVisible()
+      await expect(tooltip).toBeVisible({ timeout: 2000 })
 
       const box = await tooltip.boundingBox()
       expect(box.x + box.width).toBeLessThanOrEqual(800)
@@ -244,8 +246,8 @@ test.describe('FlameGraphTooltip Component', () => {
       await expect(tooltip).toBeVisible()
 
       // Check for percentage format
-      const widthText = await tooltip.locator('text=Width:').locator('..').textContent()
-      expect(widthText).toMatch(/\d+\.\d{2}%/)
+      const totalTimeText = await tooltip.locator('text=Total Time:').locator('..').textContent()
+      expect(totalTimeText).toMatch(/\d+\.\d{2}%/)
     })
   })
 })

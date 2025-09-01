@@ -7,7 +7,7 @@ import { HottestFramesBar } from '../../../src/components/HottestFramesBar'
 import { HottestFramesControls } from '../../../src/components/HottestFramesControls'
 import { FrameDetails } from '../../../src/components/FrameDetails'
 import { FullFlameGraph } from '../../../src/components/FullFlameGraph'
-import { FlameNode, FrameData } from '../../../src/renderer'
+import { FlameNode, FrameData, FlameDataProcessor } from '../../../src/renderer'
 import { fetchProfile } from '../../../src/parser'
 import { generateMockProfile } from '../mock-data'
 
@@ -64,6 +64,7 @@ const TestApp: React.FC = () => {
   const showFullFlameGraph = params.get('fullFlameGraph') === 'true'
   const showFlameGraph = params.get('flamegraph') !== 'false' // Default to true
   const hottestHeight = params.get('hottestHeight') ? parseInt(params.get('hottestHeight')!) : 10
+  const prePopulateStackDetails = params.get('prePopulateStackDetails') === 'true'
 
   // Generate consistent mock profile for testing
   const testProfile = useMemo(() => {
@@ -117,6 +118,71 @@ const TestApp: React.FC = () => {
   }
 
   const config = configs[testMode] || configs.default
+
+  // Pre-populate stack details for unit testing if requested
+  React.useEffect(() => {
+    if (prePopulateStackDetails && testProfile) {
+      // Process the profile to get the flame graph structure
+      const processor = new FlameDataProcessor()
+      const flameGraphRoot = processor.processProfile(testProfile)
+      // Find a reasonable frame to pre-select (e.g., a nested frame)
+      const findNestedFrame = (node: any, depth = 0): any => {
+        if (!node) {
+          return null
+        }
+        
+        // Return a frame that's deep enough to have interesting stack trace
+        if (depth >= 1 && node.name && node.value) {
+          return node
+        }
+        
+        if (node.children && node.children.length > 0) {
+          for (const child of node.children) {
+            const result = findNestedFrame(child, depth + 1)
+            if (result) {
+              return result
+            }
+          }
+        }
+        
+        return null
+      }
+      
+      const frameToSelect = findNestedFrame(flameGraphRoot)
+      if (frameToSelect) {
+        // Build stack trace from root to selected frame
+        const buildStackTrace = (root: any, target: any, path: any[] = []): any[] | null => {
+          if (!root || !target) {
+            return null
+          }
+          
+          const currentPath = [...path, root]
+          
+          if (root.id === target.id) {
+            return currentPath
+          }
+          
+          if (root.children) {
+            for (const child of root.children) {
+              const result = buildStackTrace(child, target, currentPath)
+              if (result) {
+                return result
+              }
+            }
+          }
+          
+          return null
+        }
+        
+        const stackTrace = buildStackTrace(flameGraphRoot, frameToSelect) || []
+        const children = frameToSelect.children || []
+        
+        setSelectedFrame(frameToSelect)
+        setStackTrace(stackTrace)
+        setChildren(children)
+      }
+    }
+  }, [prePopulateStackDetails, testProfile])
 
   // Handle frame selection from HottestFramesBar
   const handleHotFrameSelect = (frame: FrameData | null) => {

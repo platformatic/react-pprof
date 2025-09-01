@@ -176,10 +176,12 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
         id: 'root',
         name: 'root',
         value: 0,
+        selfValue: 0,
         children: [],
         depth: 0,
         x: 0,
-        width: 1
+        width: 1,
+        selfWidth: 0
       }
       
       // Process each sample in the profile
@@ -216,10 +218,12 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
                 id: nodeId,
                 name: funcName,
                 value: 0,
+                selfValue: 0,
                 children: [],
                 depth: depth + 1,
                 x: 0,
-                width: 0
+                width: 0,
+                selfWidth: 0
               }
               currentNode.children.push(child)
             }
