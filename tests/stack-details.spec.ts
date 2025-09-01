@@ -118,8 +118,8 @@ test.describe('StackDetails Component', () => {
       // Check the stack trace section
       const stackSection = page.locator('text=Stack Trace (Root → Selected)').locator('..').locator('..')
 
-      // Count frames by looking for divs that contain Value: text
-      const frameElements = await stackSection.locator('div:has(span:has-text("Value:"))').count()
+      // Count frames by looking for divs that contain Samples: text
+      const frameElements = await stackSection.locator('div:has(span:has-text("Samples:"))').count()
 
       // We should have at least some frames in the stack
       expect(frameElements).toBeGreaterThan(0)
@@ -245,7 +245,7 @@ test.describe('StackDetails Component', () => {
       const selectedFrame = page.locator('text=Selected frame:')
       // Look for value/time info in the Stack Trace section
       const stackTraceSection = page.locator('text=Stack Trace (Root → Selected)').locator('..').locator('..')
-      const valueInfo = stackTraceSection.locator('text=/Value:/').first()
+      const valueInfo = stackTraceSection.locator('text=/Samples:/').first()
       const totalTimeInfo = stackTraceSection.locator('text=/Total Time:/').first()
 
       await expect(selectedFrame).toBeVisible()
@@ -388,7 +388,7 @@ test.describe('StackDetails Component', () => {
 
       // Stack trace should still display even without file info
       const stackSection = page.locator('text=Stack Trace (Root → Selected)').locator('..').locator('..')
-      const valueInfo = await stackSection.locator('text=/Value:/').count()
+      const valueInfo = await stackSection.locator('text=/Samples:/').count()
       expect(valueInfo).toBeGreaterThan(0)
     })
 
@@ -494,14 +494,14 @@ test.describe('StackDetails Component', () => {
 
       // Check that values are displayed
       const stackSection = page.locator('text=Stack Trace (Root → Selected)').locator('..').locator('..')
-      // Look for text containing "Value:"
-      const valueElements = await stackSection.locator('text=/Value:/').count()
+      // Look for text containing "Samples:"
+      const valueElements = await stackSection.locator('text=/Samples:/').count()
       expect(valueElements).toBeGreaterThan(0)
 
       // Get the first value text
-      const valueText = await stackSection.locator('span:has-text("Value:")').first().textContent()
+      const valueText = await stackSection.locator('span:has-text("Samples:")').first().textContent()
       expect(valueText).toBeTruthy()
-      expect(valueText).toContain('Value:')
+      expect(valueText).toContain('Samples:')
     })
 
     test('displays correct total time percentage', async ({ page }) => {
@@ -535,11 +535,11 @@ test.describe('StackDetails Component', () => {
 
       // Get all child frame values
       const childrenSection = page.locator('text=Child Frames').locator('..').locator('..')
-      const valueTexts = await childrenSection.locator('text=/Value: [d,]+/').allTextContents()
+      const valueTexts = await childrenSection.locator('text=/Samples: [d,]+/').allTextContents()
 
       if (valueTexts.length > 1) {
         const values = valueTexts.map(text => {
-          const match = text.match(/Value: ([\d,]+)/)
+          const match = text.match(/Samples: ([\d,]+)/)
           return match ? parseInt(match[1].replace(/,/g, '')) : 0
         })
 
@@ -729,7 +729,7 @@ test.describe('StackDetails Component', () => {
       await expect(childFramesSection).toBeVisible()
 
       // Should show frame metrics (use first() to avoid strict mode violations)
-      const valueInfo = page.locator('text=/Value:/').first()
+      const valueInfo = page.locator('text=/Samples:/').first()
       const totalTimeInfo = page.locator('text=/Total Time:/').first()
       await expect(valueInfo).toBeVisible()
       await expect(totalTimeInfo).toBeVisible()

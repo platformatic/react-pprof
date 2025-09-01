@@ -137,7 +137,7 @@ const FrameMetrics: React.FC<FrameMetricsProps> = ({ frame, selfTimePercentage }
       <span>{typeof frame.fileName === 'object' ? JSON.stringify(frame.fileName) : frame.fileName}:{typeof frame.lineNumber === 'object' ? JSON.stringify(frame.lineNumber) : frame.lineNumber}</span>
     )}
     {frame.fileName ? ' • ' : ''}
-    <span>Value: {typeof frame.value === 'object' ? JSON.stringify(frame.value) : (frame.value?.toLocaleString() || '0')}</span>
+    <span>Samples: {typeof frame.value === 'object' ? JSON.stringify(frame.value) : (frame.value?.toLocaleString() || '0')}</span>
     {' • '}
     <span>Total Time: {typeof frame.width === 'object' ? JSON.stringify(frame.width) : ((frame.width || 0) * 100).toFixed(2)}%</span>
     {selfTimePercentage !== undefined && (

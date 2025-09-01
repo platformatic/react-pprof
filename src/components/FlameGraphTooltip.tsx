@@ -79,7 +79,7 @@ export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
         borderTop: '1px solid #e8e8e8'
       }} />
       <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666', fontSize: '11px' }}>Value:</span>
+        <span style={{ color: '#666', fontSize: '11px' }}>Samples:</span>
         <span style={{ marginLeft: '8px', fontWeight: '500' }}>{frameData.value.toLocaleString()}</span>
       </div>
       <div style={{ marginBottom: '6px' }}>
