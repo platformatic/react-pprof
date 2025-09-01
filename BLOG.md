@@ -50,12 +50,31 @@ Our React component library brings professional-grade flamegraph rendering to th
 - **Static HTML Generation**: Generate standalone HTML flamegraphs with our CLI tool
 
 ```tsx
+import React, { useState, useEffect } from 'react'
 import { FlameGraph, StackDetails, fetchProfile } from 'react-pprof'
 
-function ProfileViewer() {
+function ProfileViewer({ profileUrl }) {
   const [profile, setProfile] = useState(null)
   const [selectedFrame, setSelectedFrame] = useState(null)
   
+  // Load the profile data if not already loaded
+  useEffect(() => {
+    fetchProfile(profileUrl)
+      .then(setProfile)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [profileUrl])
+  
+  // Show a loading message until the profile is ready
+  if (!profile) {
+    return (
+      <div style={{ display: 'flex', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    )
+  }
+
+  // Render a flamegraph with a stack details panel to inspect frames
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
       <FlameGraph 
@@ -263,7 +282,7 @@ curl http://localhost:3000/heavy
 ```tsx
 import { FlameGraph, StackDetails } from 'react-pprof'
 
-function ProfileDashboard() {
+function ProfileDashboard({ profile, handleFrameSelection, selectedFrame, stackTrace }) {
   return (
     <div className="profiling-dashboard">
       <FlameGraph 
@@ -276,7 +295,6 @@ function ProfileDashboard() {
       <StackDetails 
         selectedFrame={selectedFrame}
         stackTrace={stackTrace}
-        children={children}
       />
     </div>
   )
