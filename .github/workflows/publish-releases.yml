@@ -43,7 +43,7 @@ jobs:
           git config --global user.email "hello@matteocollina.com"
           git commit -a -m "Bumped v${{ inputs.version }}"
           git push origin HEAD:${{ github.ref }}
-      - run: pnpm -r publish --access public --tag ${{ inputs.prerelease == true && 'next' || 'latest' }} --publish-branch ${{ github.ref_name }}
+      - run: npm publish --access public --tag ${{ inputs.prerelease == true && 'next' || 'latest' }} --publish-branch ${{ github.ref_name }}
       - name: 'Create release notes'
         run: |
           pnpx @matteo.collina/release-notes -a ${{ secrets.GITHUB_TOKEN }} -t v${{ inputs.version }} -r react-pprof -o platformatic ${{ github.event.inputs.prerelease == 'true' && '-p' || '' }} -c ${{ github.ref }}
