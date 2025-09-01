@@ -54,23 +54,37 @@ export function generateMockProfile(): Profile {
   // Generate sample call stacks
   const samples: Sample[] = []
 
-  // Generate realistic call stacks
-  for (let i = 0; i < 100; i++) {
-    // Random stack depth 2-6
-    const stackDepth = Math.floor(Math.random() * 5) + 2
-    const locationIds: number[] = []
+  // Generate realistic call stacks with some self-time for parent frames
+  for (let i = 0; i < 80; i++) {
+    let locationIds: number[] = []
+    let value = Math.floor(Math.random() * 50) + 1
 
-    // Start with main function
-    locationIds.push(1) // main function
-
-    // Add random functions to create stack
-    for (let j = 1; j < stackDepth; j++) {
-      const randomFuncIdx = Math.floor(Math.random() * (functions.length - 1)) + 1
-      locationIds.push(randomFuncIdx + 1)
+    if (i < 40) {
+      // First 40 samples: deep stacks for realistic nested calls
+      const stackDepth = Math.floor(Math.random() * 4) + 2
+      locationIds.push(1) // main function
+      
+      for (let j = 1; j < stackDepth; j++) {
+        const randomFuncIdx = Math.floor(Math.random() * (functions.length - 1)) + 1
+        locationIds.push(randomFuncIdx + 1)
+      }
+    } else if (i < 65) {
+      // Next 25 samples: shorter stacks to give parent frames self-time
+      const stackDepth = Math.floor(Math.random() * 2) + 1 // 1-2 depth
+      locationIds.push(1) // main function
+      
+      for (let j = 1; j < stackDepth; j++) {
+        const randomFuncIdx = Math.floor(Math.random() * 3) + 1 // Use first few functions more often
+        locationIds.push(randomFuncIdx + 1)
+      }
+      // Give these samples higher values to represent self-time
+      value = Math.floor(Math.random() * 60) + 20
+    } else {
+      // Last 15 samples: single-frame samples (pure self-time)
+      const randomFuncIdx = Math.floor(Math.random() * 6) + 1
+      locationIds.push(randomFuncIdx)
+      value = Math.floor(Math.random() * 40) + 15
     }
-
-    // Random sample value
-    const value = Math.floor(Math.random() * 50) + 1
 
     samples.push(new Sample({
       locationId: locationIds,

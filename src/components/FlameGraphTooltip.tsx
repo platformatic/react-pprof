@@ -83,8 +83,12 @@ export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
         <span style={{ marginLeft: '8px', fontWeight: '500' }}>{frameData.value.toLocaleString()}</span>
       </div>
       <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666', fontSize: '11px' }}>Width:</span>
+        <span style={{ color: '#666', fontSize: '11px' }}>Total Time:</span>
         <span style={{ marginLeft: '8px', fontWeight: '500' }}>{(frameData.width * 100).toFixed(2)}%</span>
+      </div>
+      <div style={{ marginBottom: '6px' }}>
+        <span style={{ color: '#666', fontSize: '11px' }}>Self Time:</span>
+        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{((frameData.selfWidth || 0) * 100).toFixed(2)}%</span>
       </div>
       <div>
         <span style={{ color: '#666', fontSize: '11px' }}>Depth:</span>

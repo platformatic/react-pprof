@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react'
 import { Profile } from '../parser'
-import { FrameData } from '../renderer'
+import { FrameData, FlameNode } from '../renderer'
 import { FrameWithSelfTime } from './HottestFramesBar'
 
 export interface HottestFramesControlsProps {
@@ -106,20 +106,16 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
     const { samples, totalValue } = buildFlameGraph(profile)
 
     // Build tree structure
-    interface FlameNode {
-      id: string
-      name: string
-      value: number
-      children: FlameNode[]
-      fileName?: string
-      lineNumber?: number
-    }
-
     const root: FlameNode = {
       id: 'root',
       name: 'all',
       value: totalValue,
-      children: []
+      selfValue: 0, // Will be calculated
+      children: [],
+      depth: 0,
+      x: 0,
+      width: 1,
+      selfWidth: 0 // Will be calculated
     }
 
     const nodeMap = new Map<string, FlameNode>()
@@ -140,7 +136,12 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
             id: nodeId,
             name: functionName,
             value: 0,
+            selfValue: 0, // Will be calculated
             children: [],
+            depth: i + 1,
+            x: 0,
+            width: 0,
+            selfWidth: 0, // Will be calculated
             fileName: location?.filename,
             lineNumber: location?.line
           }
@@ -153,23 +154,33 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
       }
     }
 
-    // Calculate self-time and collect frames
-    const calculateSelfTime = (node: FlameNode): number => {
+    // Calculate self-time values for all nodes
+    const calculateSelfTimes = (node: FlameNode) => {
       const childrenTotalValue = node.children.reduce((sum, child) => sum + child.value, 0)
-      return Math.max(0, node.value - childrenTotalValue)
+      node.selfValue = Math.max(0, node.value - childrenTotalValue)
+      node.selfWidth = node.selfValue / root.value
+      
+      // Recursively process children
+      node.children.forEach(calculateSelfTimes)
     }
+    
+    calculateSelfTimes(root)
 
+    // Collect frames with pre-computed self-time
     const collectFrames = (node: FlameNode) => {
-      const selfTime = calculateSelfTime(node)
+      // Use pre-computed self-time from FlameDataProcessor
+      const selfTime = node.selfValue
       if (node.id !== 'root') {
         frameMap.set(node.id, {
           frame: {
             id: node.id,
             name: node.name,
             value: selfTime,
+            selfValue: node.selfValue,
             depth: node.id.split('/').length - 1,
             x: 0,
             width: 0,
+            selfWidth: node.selfWidth,
             functionName: node.name,
             fileName: node.fileName,
             lineNumber: node.lineNumber,

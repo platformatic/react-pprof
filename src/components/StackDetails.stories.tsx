@@ -26,12 +26,14 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-// Sample frame data
+// Sample frame data with realistic self-time values
 const selectedFrame = {
   id: 'root/main/server/handler',
   name: 'requestHandler',
   value: 1250,
-  width: 0.45,
+  selfValue: 150, // Self time: 1250 - (450+320+280+200) = 0 -> adjusted for demo
+  width: 0.25,
+  selfWidth: 0.03, // 3% self time
   depth: 3,
   fileName: '/app/src/handlers/request.js',
   lineNumber: 156
@@ -42,14 +44,18 @@ const stackTrace = [
     id: 'root',
     name: 'root',
     value: 5000,
+    selfValue: 0, // Root has no self time
     width: 1.0,
+    selfWidth: 0,
     depth: 0,
   },
   {
     id: 'root/main',
     name: 'main',
     value: 4800,
+    selfValue: 800, // 4800 - 4000 (server overhead)
     width: 0.96,
+    selfWidth: 0.16, // 16% self time  
     depth: 1,
     fileName: '/app/src/main.js',
     lineNumber: 12
@@ -58,7 +64,9 @@ const stackTrace = [
     id: 'root/main/server',
     name: 'startServer',
     value: 3200,
+    selfValue: 650, // 3200 - 2550 (handler overhead)
     width: 0.64,
+    selfWidth: 0.13, // 13% self time
     depth: 2,
     fileName: '/app/src/server.js',
     lineNumber: 45
@@ -67,7 +75,9 @@ const stackTrace = [
     id: 'root/main/server/handler',
     name: 'requestHandler',
     value: 1250,
+    selfValue: 150, // 1250 - 1100 (children total)
     width: 0.25,
+    selfWidth: 0.03, // 3% self time
     depth: 3,
     fileName: '/app/src/handlers/request.js',
     lineNumber: 156
@@ -79,7 +89,9 @@ const children = [
     id: 'root/main/server/handler/auth',
     name: 'authenticate',
     value: 450,
+    selfValue: 450, // Leaf node - all self time
     width: 0.09,
+    selfWidth: 0.09, // 9% self time
     depth: 4,
     fileName: '/app/src/auth/index.js',
     lineNumber: 23
@@ -88,7 +100,9 @@ const children = [
     id: 'root/main/server/handler/validate',
     name: 'validateRequest',
     value: 320,
+    selfValue: 320, // Leaf node - all self time
     width: 0.064,
+    selfWidth: 0.064, // 6.4% self time
     depth: 4,
     fileName: '/app/src/validators/request.js',
     lineNumber: 89
@@ -96,8 +110,10 @@ const children = [
   {
     id: 'root/main/server/handler/process',
     name: 'processData',
-    value: 280,
-    width: 0.056,
+    value: 180, // Reduced to show more self time in parent
+    selfValue: 180, // Leaf node - all self time
+    width: 0.036,
+    selfWidth: 0.036, // 3.6% self time
     depth: 4,
     fileName: '/app/src/processors/data.js',
     lineNumber: 156
@@ -105,8 +121,10 @@ const children = [
   {
     id: 'root/main/server/handler/response',
     name: 'sendResponse',
-    value: 200,
-    width: 0.04,
+    value: 150, // Reduced to show more self time in parent
+    selfValue: 150, // Leaf node - all self time
+    width: 0.03,
+    selfWidth: 0.03, // 3% self time
     depth: 4,
     fileName: '/app/src/handlers/response.js',
     lineNumber: 34
@@ -151,7 +169,9 @@ export const LeafNode: Story = {
       id: 'root/main/server/handler/leaf',
       name: 'calculateHash',
       value: 150,
+      selfValue: 150, // Leaf node - all self time
       width: 0.03,
+      selfWidth: 0.03, // 3% self time
       depth: 5,
       fileName: '/app/src/crypto/hash.js',
       lineNumber: 234
@@ -162,7 +182,9 @@ export const LeafNode: Story = {
         id: 'root/main/server/handler/leaf',
         name: 'calculateHash',
         value: 150,
+        selfValue: 150, // Leaf node - all self time
         width: 0.03,
+        selfWidth: 0.03, // 3% self time
         depth: 5,
         fileName: '/app/src/crypto/hash.js',
         lineNumber: 234
@@ -187,7 +209,9 @@ export const ManyChildren: Story = {
         id: 'root/main/server/handler/logging',
         name: 'logRequest',
         value: 50,
+        selfValue: 50, // Leaf node - all self time
         width: 0.01,
+        selfWidth: 0.01, // 1% self time
         depth: 4,
         fileName: '/app/src/logging/request.js',
         lineNumber: 12
@@ -196,7 +220,9 @@ export const ManyChildren: Story = {
         id: 'root/main/server/handler/metrics',
         name: 'recordMetrics',
         value: 45,
+        selfValue: 45, // Leaf node - all self time
         width: 0.009,
+        selfWidth: 0.009, // 0.9% self time
         depth: 4,
         fileName: '/app/src/metrics/recorder.js',
         lineNumber: 67
@@ -205,7 +231,9 @@ export const ManyChildren: Story = {
         id: 'root/main/server/handler/cache',
         name: 'checkCache',
         value: 40,
+        selfValue: 40, // Leaf node - all self time
         width: 0.008,
+        selfWidth: 0.008, // 0.8% self time
         depth: 4,
         fileName: '/app/src/cache/manager.js',
         lineNumber: 89
@@ -214,7 +242,9 @@ export const ManyChildren: Story = {
         id: 'root/main/server/handler/rate',
         name: 'rateLimiter',
         value: 35,
+        selfValue: 35, // Leaf node - all self time
         width: 0.007,
+        selfWidth: 0.007, // 0.7% self time
         depth: 4,
         fileName: '/app/src/middleware/ratelimit.js',
         lineNumber: 45
