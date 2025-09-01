@@ -1,6 +1,6 @@
 {
   "name": "react-pprof",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "React component for visualizing pprof with WebGL",
   "main": "dist/index.js",
   "module": "dist/index.js",
