@@ -1,6 +1,6 @@
 {
-  "name": "@platformatic/react-pprof",
-  "version": "1.1.2",
+  "name": "react-pprof",
+  "version": "0.1.0",
   "description": "React component for visualizing pprof with WebGL",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -37,7 +37,7 @@
     "renderer"
   ],
   "author": "Platformatic Inc. <oss@platformatic.dev> (http://platformatic.dev/)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@datadog/pprof": "^5.9.0",
     "@playwright/test": "^1.54.1",
