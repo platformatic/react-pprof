@@ -356,3 +356,148 @@ export const WithFrameDetails: Story = {
     },
   },
 }
+
+// Create a heap profile for heap-specific stories
+const createHeapProfile = (): Profile => {
+  const stringTable = new StringTable()
+
+  const functions = [
+    { name: 'main', file: '/app/server.js', line: 1 },
+    { name: 'Express.createServer', file: '/app/node_modules/express/lib/application.js', line: 42 },
+    { name: 'middleware.bodyParser', file: '/app/node_modules/body-parser/index.js', line: 56 },
+    { name: 'Buffer.alloc', file: 'buffer.js', line: 289 },
+    { name: 'imageController.upload', file: '/app/controllers/image.js', line: 124 },
+    { name: 'sharp.resize', file: '/app/node_modules/sharp/lib/resize.js', line: 567 },
+    { name: 'cache.set', file: '/app/services/cache.js', line: 145 },
+    { name: 'JSON.stringify', file: 'json.js', line: 234 },
+    { name: 'database.query', file: '/app/services/database.js', line: 345 },
+    { name: 'pg.Pool.query', file: '/app/node_modules/pg/lib/pool.js', line: 456 },
+  ]
+
+  const profileFunctions: Function[] = []
+  functions.forEach((func, i) => {
+    const funcId = i + 1
+    const nameIdx = stringTable.dedup(func.name)
+    const filenameIdx = stringTable.dedup(func.file)
+
+    profileFunctions.push(new Function({
+      id: funcId,
+      name: nameIdx,
+      filename: filenameIdx,
+      startLine: func.line
+    }))
+  })
+
+  const locations: Location[] = []
+  profileFunctions.forEach((func, i) => {
+    const locationId = i + 1
+    locations.push(new Location({
+      id: locationId,
+      line: [new Line({
+        functionId: func.id,
+        line: functions[i].line + Math.floor(Math.random() * 30)
+      })]
+    }))
+  })
+
+  const samples: Sample[] = []
+
+  // Generate heap allocation samples with varying sizes
+  for (let i = 0; i < 150; i++) {
+    const stackDepth = Math.floor(Math.random() * 5) + 1
+    const locationIds: number[] = []
+
+    for (let j = 0; j < stackDepth; j++) {
+      locationIds.push(Math.floor(Math.random() * functions.length) + 1)
+    }
+
+    // Generate realistic allocation sizes (bytes)
+    const baseSize = Math.pow(2, Math.floor(Math.random() * 16) + 6) // 64B to 4MB
+    const size = Math.floor(baseSize * (0.8 + Math.random() * 0.4))
+
+    samples.push(new Sample({
+      locationId: locationIds.reverse(),
+      value: [size]
+    }))
+  }
+
+  const sampleType = [new ValueType({
+    type: stringTable.dedup('space'),
+    unit: stringTable.dedup('bytes')
+  })]
+
+  return new Profile({
+    sampleType,
+    sample: samples,
+    location: locations,
+    function: profileFunctions,
+    stringTable,
+    timeNanos: Date.now() * 1000000,
+    durationNanos: 0,
+    periodType: new ValueType({
+      type: stringTable.dedup('space'),
+      unit: stringTable.dedup('bytes')
+    }),
+    period: 524288
+  })
+}
+
+const heapProfile = createHeapProfile()
+
+export const HeapProfileDefault: Story = {
+  args: {
+    profile: heapProfile,
+    height: 500,
+    primaryColor: '#9b59b6',
+    secondaryColor: '#e74c3c',
+    backgroundColor: '#1e1e1e',
+    textColor: '#ffffff',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Heap profile showing memory allocations with space units (bytes, KB, MB, GB) and "Allocations" instead of "Samples".',
+      },
+    },
+  },
+}
+
+export const HeapProfileGreenTheme: Story = {
+  args: {
+    profile: heapProfile,
+    height: 500,
+    primaryColor: '#27ae60',
+    secondaryColor: '#16a085',
+    backgroundColor: '#1e1e1e',
+    textColor: '#ffffff',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Heap profile with green color theme.',
+      },
+    },
+  },
+}
+
+export const HeapProfileWithAllFeatures: Story = {
+  args: {
+    profile: heapProfile,
+    height: 600,
+    showHottestFrames: true,
+    showControls: true,
+    showFrameDetails: true,
+    showStackDetails: true,
+    primaryColor: '#9b59b6',
+    secondaryColor: '#e74c3c',
+    backgroundColor: '#1e1e1e',
+    textColor: '#ffffff',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Full heap profile view with all features enabled. Click on frames to see allocation details with proper space formatting.',
+      },
+    },
+  },
+}

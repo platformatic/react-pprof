@@ -22,8 +22,12 @@ test.describe('FlameGraphTooltip Component', () => {
 
       // Check tooltip content - no more 'Function:' prefix
       await expect(tooltip.locator('text=Samples:')).toBeVisible()
-      await expect(tooltip.locator('text=Total Time:')).toBeVisible()
-      await expect(tooltip.locator('text=Self Time:')).toBeVisible()
+      // Total Time or Total Value label (depends on profile type)
+      const hasTotalLabel = await tooltip.locator('text=Total Time:').isVisible() || await tooltip.locator('text=Total Value:').isVisible()
+      expect(hasTotalLabel).toBe(true)
+      // Self Time or Self Value label (depends on profile type)
+      const hasSelfLabel = await tooltip.locator('text=Self Time:').isVisible() || await tooltip.locator('text=Self Value:').isVisible()
+      expect(hasSelfLabel).toBe(true)
       await expect(tooltip.locator('text=Depth:')).toBeVisible()
     })
 
@@ -245,9 +249,9 @@ test.describe('FlameGraphTooltip Component', () => {
       const tooltip = page.locator('.flamegraph-tooltip')
       await expect(tooltip).toBeVisible()
 
-      // Check for percentage format
-      const totalTimeText = await tooltip.locator('text=Total Time:').locator('..').textContent()
-      expect(totalTimeText).toMatch(/\d+\.\d{2}%/)
+      // Check for percentage format in tooltip content
+      const tooltipText = await tooltip.textContent()
+      expect(tooltipText).toMatch(/\d+\.\d{2}%/)
     })
   })
 })

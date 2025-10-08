@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { getFrameColorHexBySameDepthRatio } from '../renderer/colors'
+import { ProfileMetadata, formatValue, formatPercentage, formatSampleCount, getMetricLabel, getSelfValueLabel, getTotalValueLabel } from '../renderer'
 
 // Internal component interfaces
 interface EmptyStateProps {
@@ -21,6 +22,7 @@ interface SelectedFrameHeaderProps {
 interface FrameMetricsProps {
   frame: any
   selfTimePercentage?: number
+  profileMetadata?: ProfileMetadata
 }
 
 interface StackTraceFrameProps {
@@ -31,6 +33,7 @@ interface StackTraceFrameProps {
   primaryColor: string
   children: any[]
   stackTrace: any[]
+  profileMetadata?: ProfileMetadata
 }
 
 interface StackTraceSectionProps {
@@ -40,6 +43,7 @@ interface StackTraceSectionProps {
   backgroundColor: string
   children: any[]
   fontFamily: string
+  profileMetadata?: ProfileMetadata
 }
 
 interface ChildFrameItemProps {
@@ -48,6 +52,7 @@ interface ChildFrameItemProps {
   isLast: boolean
   textColor: string
   primaryColor: string
+  profileMetadata?: ProfileMetadata
 }
 
 interface ChildFramesSectionProps {
@@ -56,6 +61,7 @@ interface ChildFramesSectionProps {
   primaryColor: string
   backgroundColor: string
   fontFamily: string
+  profileMetadata?: ProfileMetadata
 }
 
 // Internal Components
@@ -128,7 +134,7 @@ const SelectedFrameHeader: React.FC<SelectedFrameHeaderProps> = ({
   </div>
 )
 
-const FrameMetrics: React.FC<FrameMetricsProps> = ({ frame, selfTimePercentage }) => (
+const FrameMetrics: React.FC<FrameMetricsProps> = ({ frame, selfTimePercentage, profileMetadata }) => (
   <div className="stack-frame-details" style={{
     fontSize: '12px',
     opacity: 0.7
@@ -137,13 +143,13 @@ const FrameMetrics: React.FC<FrameMetricsProps> = ({ frame, selfTimePercentage }
       <span>{typeof frame.fileName === 'object' ? JSON.stringify(frame.fileName) : frame.fileName}:{typeof frame.lineNumber === 'object' ? JSON.stringify(frame.lineNumber) : frame.lineNumber}</span>
     )}
     {frame.fileName ? ' • ' : ''}
-    <span>Samples: {typeof frame.value === 'object' ? JSON.stringify(frame.value) : (frame.value?.toLocaleString() || '0')}</span>
+    <span>{profileMetadata ? getMetricLabel(profileMetadata) : 'Samples'}: {typeof frame.sampleCount === 'object' ? JSON.stringify(frame.sampleCount) : formatSampleCount(frame.sampleCount || 0)}</span>
     {' • '}
-    <span>Total Time: {typeof frame.width === 'object' ? JSON.stringify(frame.width) : ((frame.width || 0) * 100).toFixed(2)}%</span>
+    <span>{profileMetadata ? getTotalValueLabel(profileMetadata) : 'Total Time'}: {profileMetadata ? formatValue(frame.value || 0, profileMetadata) : `${((frame.width || 0) * 100).toFixed(2)}%`} ({formatPercentage(frame.width || 0)})</span>
     {selfTimePercentage !== undefined && (
       <>
         {' • '}
-        <span>Self Time: {selfTimePercentage.toFixed(2)}%</span>
+        <span>{profileMetadata ? getSelfValueLabel(profileMetadata) : 'Self Time'}: {selfTimePercentage.toFixed(2)}%</span>
       </>
     )}
   </div>
@@ -156,7 +162,8 @@ const StackTraceFrame: React.FC<StackTraceFrameProps> = ({
   textColor,
   primaryColor,
   children: _children,
-  stackTrace: _stackTrace
+  stackTrace: _stackTrace,
+  profileMetadata
 }) => {
   // Use pre-computed self-time from FlameNode
   const selfTimePercentage = ((frame.selfWidth || 0) * 100)
@@ -177,7 +184,7 @@ const StackTraceFrame: React.FC<StackTraceFrameProps> = ({
           {index > 0 ? '→ ' : ''}{typeof frame.name === 'object' ? JSON.stringify(frame.name) : (frame.name || 'Unnamed')}
         </span>
       </div>
-      <FrameMetrics frame={frame} selfTimePercentage={selfTimePercentage} />
+      <FrameMetrics frame={frame} selfTimePercentage={selfTimePercentage} profileMetadata={profileMetadata} />
     </div>
   )
 }
@@ -188,7 +195,8 @@ const StackTraceSection: React.FC<StackTraceSectionProps> = ({
   primaryColor,
   backgroundColor,
   children,
-  fontFamily
+  fontFamily,
+  profileMetadata
 }) => (
   <div className="stack-trace-section">
     <hr style={{
@@ -224,6 +232,7 @@ const StackTraceSection: React.FC<StackTraceSectionProps> = ({
             primaryColor={primaryColor}
             children={children}
             stackTrace={stackTrace}
+            profileMetadata={profileMetadata}
           />
         )
       })}
@@ -236,7 +245,8 @@ const ChildFrameItem: React.FC<ChildFrameItemProps> = ({
   index,
   isLast,
   textColor,
-  primaryColor
+  primaryColor,
+  profileMetadata
 }) => {
   // Use pre-computed self-time from FlameNode
   const selfTimePercentage = ((child.selfWidth || 0) * 100)
@@ -250,7 +260,7 @@ const ChildFrameItem: React.FC<ChildFrameItemProps> = ({
       <div style={{ marginBottom: '4px' }}>
         <strong style={{ color: textColor }}>{typeof child.name === 'object' ? JSON.stringify(child.name) : child.name}</strong>
       </div>
-      <FrameMetrics frame={child} selfTimePercentage={selfTimePercentage} />
+      <FrameMetrics frame={child} selfTimePercentage={selfTimePercentage} profileMetadata={profileMetadata} />
     </div>
   )
 }
@@ -260,7 +270,8 @@ const ChildFramesSection: React.FC<ChildFramesSectionProps> = ({
   textColor,
   primaryColor,
   backgroundColor,
-  fontFamily
+  fontFamily,
+  profileMetadata
 }) => (
   <div className="child-frames-section">
     <hr style={{
@@ -299,6 +310,7 @@ const ChildFramesSection: React.FC<ChildFramesSectionProps> = ({
               isLast={index === sortedChildren.length - 1}
               textColor={textColor}
               primaryColor={primaryColor}
+              profileMetadata={profileMetadata}
             />
           )
         })
@@ -319,6 +331,7 @@ export interface StackDetailsProps {
   width?: number | string
   height?: number | string
   allFrames?: any[] // All frames in the profile for accurate color calculation
+  profileMetadata?: ProfileMetadata
 }
 
 export const StackDetails: React.FC<StackDetailsProps> = ({
@@ -332,7 +345,8 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
   fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
   width = '100%',
   height = 'auto',
-  allFrames = []
+  allFrames = [],
+  profileMetadata
 }) => {
   // Sort children by descending weight (value)
   const sortedChildren = useMemo(() => {
@@ -392,17 +406,19 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
   }
 
   return (
-    <div className="stack-details-container stack-details-with-frame" style={{
-      width,
-      height,
-      backgroundColor,
-      color: textColor,
-      padding: '20px',
-      fontFamily,
-      fontSize: '14px',
-      overflow: 'auto',
-      boxSizing: 'border-box'
-    }}>
+    <div
+      className="stack-details-container stack-details-with-frame"
+      style={{
+        width,
+        height,
+        backgroundColor,
+        color: textColor,
+        padding: '20px',
+        fontFamily,
+        fontSize: '14px',
+        overflow: 'auto',
+        boxSizing: 'border-box'
+      }}>
       <SelectedFrameHeader
         selectedFrame={selectedFrame}
         frameBackgroundColor={frameBackgroundColor}
@@ -418,6 +434,7 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
         backgroundColor={backgroundColor}
         children={children}
         fontFamily={fontFamily}
+        profileMetadata={profileMetadata}
       />
 
       <ChildFramesSection
@@ -426,6 +443,7 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
         primaryColor={primaryColor}
         backgroundColor={backgroundColor}
         fontFamily={fontFamily}
+        profileMetadata={profileMetadata}
       />
     </div>
   )

@@ -24,6 +24,28 @@ export { FlameDataProcessor, type FlameNode, type FrameData } from './FlameDataP
 export { TextRenderer } from './TextRenderer'
 export { FrameRenderer } from './FrameRenderer'
 
+// Export profile metadata and formatting utilities
+export {
+  ProfileType,
+  TimeUnit,
+  SpaceUnit,
+  type ProfileMetadata,
+  detectProfileMetadata,
+  isCPUProfile,
+  isHeapProfile
+} from './ProfileMetadata'
+export {
+  formatValue,
+  formatTime,
+  formatSpace,
+  formatPercentage,
+  formatSampleCount,
+  getMetricLabel,
+  getValueLabel,
+  getTotalValueLabel,
+  getSelfValueLabel
+} from './formatters'
+
 // Export utilities
 export * from './shaders'
 export * from './constants'

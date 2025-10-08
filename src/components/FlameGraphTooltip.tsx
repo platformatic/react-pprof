@@ -1,18 +1,20 @@
 import React from 'react'
-import { FlameNode } from '../renderer'
+import { FlameNode, ProfileMetadata, formatValue, formatPercentage, formatSampleCount, getMetricLabel, getTotalValueLabel, getSelfValueLabel } from '../renderer'
 
 export interface FlameGraphTooltipProps {
   frameData: FlameNode
   mouseX: number
   mouseY: number
   fontFamily?: string
+  profileMetadata?: ProfileMetadata
 }
 
 export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
   frameData,
   mouseX,
   mouseY,
-  fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif'
+  fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
+  profileMetadata
 }) => {
   const calculateTooltipPosition = (mouseX: number, mouseY: number) => {
     const tooltipWidth = 250
@@ -79,16 +81,18 @@ export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
         borderTop: '1px solid #e8e8e8'
       }} />
       <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666', fontSize: '11px' }}>Samples:</span>
-        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{frameData.value.toLocaleString()}</span>
+        <span style={{ color: '#666', fontSize: '11px' }}>{profileMetadata ? getMetricLabel(profileMetadata) : 'Samples'}:</span>
+        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{formatSampleCount(frameData.value)}</span>
       </div>
       <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666', fontSize: '11px' }}>Total Time:</span>
-        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{(frameData.width * 100).toFixed(2)}%</span>
+        <span style={{ color: '#666', fontSize: '11px' }}>{profileMetadata ? getTotalValueLabel(profileMetadata) : 'Total Time'}:</span>
+        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{profileMetadata ? formatValue(frameData.value, profileMetadata) : `${(frameData.width * 100).toFixed(2)}%`}</span>
+        <span style={{ marginLeft: '4px', color: '#999', fontSize: '10px' }}>({formatPercentage(frameData.width)})</span>
       </div>
       <div style={{ marginBottom: '6px' }}>
-        <span style={{ color: '#666', fontSize: '11px' }}>Self Time:</span>
-        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{((frameData.selfWidth || 0) * 100).toFixed(2)}%</span>
+        <span style={{ color: '#666', fontSize: '11px' }}>{profileMetadata ? getSelfValueLabel(profileMetadata) : 'Self Time'}:</span>
+        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{profileMetadata ? formatValue(frameData.selfValue || 0, profileMetadata) : `${((frameData.selfWidth || 0) * 100).toFixed(2)}%`}</span>
+        <span style={{ marginLeft: '4px', color: '#999', fontSize: '10px' }}>({formatPercentage(frameData.selfWidth || 0)})</span>
       </div>
       <div>
         <span style={{ color: '#666', fontSize: '11px' }}>Depth:</span>

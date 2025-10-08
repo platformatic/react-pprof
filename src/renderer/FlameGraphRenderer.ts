@@ -377,6 +377,10 @@ export class FlameGraphRenderer {
     return this.#dataProcessor.getData()
   }
 
+  get profileMetadata() {
+    return this.#dataProcessor.getProfileMetadata()
+  }
+
   get camera(): { x: number; y: number; scale: number } {
     const state = this.#camera.getCamera()
     return { x: state.x, y: state.y, scale: state.scale }
