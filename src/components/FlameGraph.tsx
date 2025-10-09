@@ -517,6 +517,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
           mouseX={mousePosition.x}
           mouseY={mousePosition.y}
           fontFamily={fontFamily}
+          profileMetadata={rendererRef.current?.profileMetadata || undefined}
         />
       )}
     </div>

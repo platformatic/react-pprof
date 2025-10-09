@@ -1,4 +1,5 @@
 import { Profile } from 'pprof-format'
+import { ProfileMetadata, detectProfileMetadata } from './ProfileMetadata'
 
 // FlameNode and FrameData types belong here since this class owns them
 export interface FlameNode {
@@ -6,6 +7,8 @@ export interface FlameNode {
   name: string
   value: number
   selfValue: number
+  sampleCount: number  // Count of samples/allocations
+  selfSampleCount: number  // Count of samples/allocations for this frame only
   children: FlameNode[]
   parent?: FlameNode
   depth: number
@@ -48,11 +51,14 @@ interface ParsedProfile {
 export class FlameDataProcessor {
   #data: FlameNode | null = null
   #framePadding = 5
+  #profileMetadata: ProfileMetadata | null = null
 
   /**
    * Convert Profile to FlameNode structure
    */
   processProfile(profile: Profile): FlameNode {
+    // Detect profile metadata first
+    this.#profileMetadata = detectProfileMetadata(profile)
     this.#data = this.#profileToFlameGraph(profile)
     return this.#data
   }
@@ -62,6 +68,13 @@ export class FlameDataProcessor {
    */
   getData(): FlameNode | null {
     return this.#data
+  }
+
+  /**
+   * Get the profile metadata
+   */
+  getProfileMetadata(): ProfileMetadata | null {
+    return this.#profileMetadata
   }
 
   /**
@@ -238,9 +251,11 @@ export class FlameDataProcessor {
     }
 
     // Process samples
+    // Use the correct value index based on profile metadata (skip count, use actual metric)
+    const valueIndex = this.#profileMetadata?.sampleTypeIndex ?? 0
     for (const sample of profile.sample || []) {
-      if (sample.locationId && sample.value && sample.value.length > 0) {
-        const value = Number(sample.value[0] || 0)
+      if (sample.locationId && sample.value && sample.value.length > valueIndex) {
+        const value = Number(sample.value[valueIndex] || 0)
         totalValue += value
 
         // Build stack trace from location IDs
@@ -279,6 +294,8 @@ export class FlameDataProcessor {
       name: 'all',
       value: totalValue,
       selfValue: 0, // Will be calculated later
+      sampleCount: samples.length,  // Total number of samples
+      selfSampleCount: 0, // Will be calculated later
       x: 0,
       width: 1,
       selfWidth: 0, // Will be calculated later
@@ -308,6 +325,8 @@ export class FlameDataProcessor {
             name: functionName,
             value: 0,
             selfValue: 0, // Will be calculated later
+            sampleCount: 0,
+            selfSampleCount: 0, // Will be calculated later
             x: 0,
             width: 0,
             selfWidth: 0, // Will be calculated later
@@ -324,6 +343,7 @@ export class FlameDataProcessor {
 
         // Accumulate sample value - this is correct for flame graphs
         node.value += sample.value
+        node.sampleCount += 1  // Each sample increments the count
 
         currentParent = node
         currentPath = nodeId
@@ -372,14 +392,18 @@ export class FlameDataProcessor {
       // Calculate self-time value (node's time minus children's time)
       const childrenTotalValue = node.children.reduce((sum, child) => sum + child.value, 0)
       node.selfValue = Math.max(0, node.value - childrenTotalValue)
-      
+
       // Calculate self-time as percentage of total profile time
       node.selfWidth = node.selfValue / root.value
-      
+
+      // Calculate self sample count (samples that end at this frame)
+      const childrenTotalSamples = node.children.reduce((sum, child) => sum + child.sampleCount, 0)
+      node.selfSampleCount = Math.max(0, node.sampleCount - childrenTotalSamples)
+
       // Recursively process children
       node.children.forEach(traverse)
     }
-    
+
     traverse(root)
   }
 

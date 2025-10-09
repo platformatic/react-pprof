@@ -111,6 +111,8 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
       name: 'all',
       value: totalValue,
       selfValue: 0, // Will be calculated
+      sampleCount: 0,
+      selfSampleCount: 0,
       children: [],
       depth: 0,
       x: 0,
@@ -137,6 +139,8 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
             name: functionName,
             value: 0,
             selfValue: 0, // Will be calculated
+            sampleCount: 0,
+            selfSampleCount: 0,
             children: [],
             depth: i + 1,
             x: 0,

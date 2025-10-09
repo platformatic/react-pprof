@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef } from 'react'
 import { Profile } from '../parser'
-import { FrameData, FlameNode } from '../renderer'
+import { FrameData, FlameNode, detectProfileMetadata, FlameGraphRenderer } from '../renderer'
 import { HottestFramesBar, type FrameWithSelfTime } from './HottestFramesBar'
 import { HottestFramesControls } from './HottestFramesControls'
 import { FrameDetails } from './FrameDetails'
@@ -41,6 +41,17 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   const [frames, setFrames] = useState<FrameWithSelfTime[]>([])
   const [stackTrace, setStackTrace] = useState<any[]>([])
   const [frameChildren, setFrameChildren] = useState<any[]>([])
+
+  // Reference to FlameGraph's renderer
+  const flameGraphRef = useRef<{ rendererRef: React.RefObject<FlameGraphRenderer> }>(null)
+
+  // Detect profile metadata directly from the profile
+  const profileMetadata = useMemo(() => {
+    if (!profile) {
+      return undefined
+    }
+    return detectProfileMetadata(profile)
+  }, [profile])
 
   // Build a map of all frames for quick lookup
   const frameMap = useMemo(() => {
@@ -141,20 +152,8 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
     }
   }
 
-  const handleHottestFrameSelect = (frame: FrameData | null) => {
-    handleFrameSelection(frame)
-  }
-
-  const handleFlameGraphClick = (frame: FrameData | null, stack?: any[], children?: any[]) => {
-    handleFrameSelection(frame, stack, children)
-  }
-
   const handleNavigationChange = (_index: number, sortedFrames: FrameWithSelfTime[]) => {
     setFrames(sortedFrames)
-  }
-
-  const handleControlsFrameSelect = (frame: FrameData) => {
-    handleFrameSelection(frame)
   }
 
   // Build the complete flame graph structure to get all frames
@@ -177,21 +176,27 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
         name: 'root',
         value: 0,
         selfValue: 0,
+        sampleCount: 0,
+        selfSampleCount: 0,
         children: [],
         depth: 0,
         x: 0,
         width: 1,
         selfWidth: 0
       }
-      
+
+      // Use the correct value index from profile metadata
+      const valueIndex = profileMetadata?.sampleTypeIndex ?? 0
+
       // Process each sample in the profile
       if (profile && profile.sample) {
         profile.sample.forEach((sample: any) => {
           if (!sample.locationId || sample.locationId.length === 0) {return}
-          
+
           let currentNode = root
-          const value = sample.value?.[0] || 1
+          const value = sample.value?.[valueIndex] || 1
           root.value += value
+          root.sampleCount += 1  // Count each sample
           
           // Build the stack for this sample
           const stack: string[] = []
@@ -211,14 +216,16 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           stack.reverse().forEach((funcName, depth) => {
             let child = currentNode.children.find(c => c.name === funcName)
             if (!child) {
-              const nodeId = currentNode.id === 'root' 
-                ? funcName 
+              const nodeId = currentNode.id === 'root'
+                ? funcName
                 : `${currentNode.id}/${funcName}`
               child = {
                 id: nodeId,
                 name: funcName,
                 value: 0,
                 selfValue: 0,
+                sampleCount: 0,
+                selfSampleCount: 0,
                 children: [],
                 depth: depth + 1,
                 x: 0,
@@ -228,6 +235,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
               currentNode.children.push(child)
             }
             child.value += value
+            child.sampleCount += 1  // Count each sample that passes through this node
             currentNode = child
           })
         })
@@ -237,11 +245,11 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
       const calculatePositions = (node: FlameNode, x: number = 0, parentWidth: number = 1) => {
         node.x = x
         node.width = parentWidth
-        
+
         if (node.children.length > 0) {
           const totalValue = node.children.reduce((sum, child) => sum + child.value, 0)
           let currentX = x
-          
+
           node.children.forEach(child => {
             const childWidth = (child.value / totalValue) * parentWidth
             calculatePositions(child, currentX, childWidth)
@@ -249,16 +257,34 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           })
         }
       }
-      
+
+      // Calculate self values and self sample counts
+      const calculateSelfValues = (node: FlameNode) => {
+        // Calculate self value (node's value minus children's value)
+        const childrenTotalValue = node.children.reduce((sum, child) => sum + child.value, 0)
+        node.selfValue = Math.max(0, node.value - childrenTotalValue)
+
+        // Calculate self width as percentage of root
+        node.selfWidth = node.selfValue / (root.value || 1)
+
+        // Calculate self sample count (samples that end at this frame)
+        const childrenTotalSamples = node.children.reduce((sum, child) => sum + child.sampleCount, 0)
+        node.selfSampleCount = Math.max(0, node.sampleCount - childrenTotalSamples)
+
+        // Recursively process children
+        node.children.forEach(calculateSelfValues)
+      }
+
       calculatePositions(root)
+      calculateSelfValues(root)
       return root
     }
     
     const flameRoot = buildFlameGraph()
     traverse(flameRoot)
-    
+
     return allNodes
-  }, [profile])
+  }, [profile, profileMetadata])
 
   // Find the current frame based on selection
   const currentFrame = frames.find(f => selectedFrame && f.nodeId === selectedFrame.id)
@@ -280,7 +306,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
             backgroundColor={backgroundColor}
             textColor={textColor}
             selectedFrame={selectedFrame}
-            onFrameSelect={handleHottestFrameSelect}
+            onFrameSelect={handleFrameSelection}
             onNavigationChange={handleNavigationChange}
           />
         </div>
@@ -299,7 +325,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
               <HottestFramesControls
                 profile={profile}
                 selectedFrame={selectedFrame}
-                onFrameSelect={handleControlsFrameSelect}
+                onFrameSelect={handleFrameSelection}
                 textColor={textColor}
               />
             </div>
@@ -312,6 +338,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
                 selfTime={currentFrame ? currentFrame.selfTime : undefined}
                 textColor={textColor}
                 fontFamily={fontFamily}
+                profileMetadata={profileMetadata}
               />
             </div>
           )}
@@ -320,6 +347,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
 
       <div style={{ position: 'relative' }}>
         <FlameGraph
+          ref={flameGraphRef}
           profile={profile}
           height={height}
           primaryColor={primaryColor}
@@ -328,7 +356,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           textColor={textColor}
           fontFamily={fontFamily}
           selectedFrameId={selectedFrameId}
-          onFrameClick={handleFlameGraphClick}
+          onFrameClick={handleFrameSelection}
         />
 
         {/* StackDetails overlay */}
@@ -347,7 +375,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           }}>
             {/* Close button */}
             <button
-              onClick={() => handleFlameGraphClick(null)}
+              onClick={() => handleFrameSelection(null)}
               style={{
                 position: 'absolute',
                 top: '10px',
@@ -388,6 +416,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
                 width="100%"
                 height="100%"
                 allFrames={allFramesFlat}
+                profileMetadata={profileMetadata}
               />
             </div>
           </div>

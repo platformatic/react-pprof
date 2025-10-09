@@ -142,6 +142,8 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
       name: 'all',
       value: totalValue,
       selfValue: 0, // Will be calculated
+      sampleCount: 0,
+      selfSampleCount: 0,
       x: 0,
       width: 1,
       selfWidth: 0, // Will be calculated
@@ -171,6 +173,8 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
             name: functionName,
             value: 0,
             selfValue: 0, // Will be calculated
+            sampleCount: 0,
+            selfSampleCount: 0,
             x: 0,
             width: 0,
             selfWidth: 0, // Will be calculated

@@ -8,8 +8,8 @@ export class FlameGraphTestUtils {
    * Navigate to test page with optional configuration
    * Now uses mock data instead of server - much faster!
    */
-  async navigateToTest(config?: { 
-    mode?: string; 
+  async navigateToTest(config?: {
+    mode?: string;
     stackDetails?: boolean;
     hottestFrames?: boolean;
     hottestControls?: boolean;
@@ -18,6 +18,7 @@ export class FlameGraphTestUtils {
     flamegraph?: boolean;
     hottestHeight?: number;
     prePopulateStackDetails?: boolean;
+    heapProfile?: boolean;
   }) {
     const params = new URLSearchParams()
     if (config?.mode) {params.set('mode', config.mode)}
@@ -29,6 +30,7 @@ export class FlameGraphTestUtils {
     if (config?.flamegraph === false) {params.set('flamegraph', 'false')}
     if (config?.hottestHeight) {params.set('hottestHeight', config.hottestHeight.toString())}
     if (config?.prePopulateStackDetails) {params.set('prePopulateStackDetails', 'true')}
+    if (config?.heapProfile) {params.set('heapProfile', 'true')}
 
     const baseUrl = 'http://localhost:3100'
     const url = `${baseUrl}?${params.toString()}`

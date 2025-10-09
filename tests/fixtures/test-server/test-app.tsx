@@ -7,9 +7,9 @@ import { HottestFramesBar } from '../../../src/components/HottestFramesBar'
 import { HottestFramesControls } from '../../../src/components/HottestFramesControls'
 import { FrameDetails } from '../../../src/components/FrameDetails'
 import { FullFlameGraph } from '../../../src/components/FullFlameGraph'
-import { FlameNode, FrameData, FlameDataProcessor } from '../../../src/renderer'
+import { FlameNode, FrameData, FlameDataProcessor, detectProfileMetadata } from '../../../src/renderer'
 import { fetchProfile } from '../../../src/parser'
-import { generateMockProfile } from '../mock-data'
+import { generateMockProfile, generateMockHeapProfile } from '../mock-data'
 
 // Expose components globally for testing
 declare global {
@@ -65,23 +65,27 @@ const TestApp: React.FC = () => {
   const showFlameGraph = params.get('flamegraph') !== 'false' // Default to true
   const hottestHeight = params.get('hottestHeight') ? parseInt(params.get('hottestHeight')!) : 10
   const prePopulateStackDetails = params.get('prePopulateStackDetails') === 'true'
+  const useHeapProfile = params.get('heapProfile') === 'true'
 
   // Generate consistent mock profile for testing
   const testProfile = useMemo(() => {
     // Use a seeded random approach for consistent test results
     const originalRandom = Math.random
-    let seed = 12345
+    let seed = useHeapProfile ? 54321 : 12345 // Different seed for heap profiles
     const seededRandom = () => {
       const x = Math.sin(seed++) * 10000
       return x - Math.floor(x)
     }
 
     Math.random = seededRandom
-    const profile = generateMockProfile()
+    const profile = useHeapProfile ? generateMockHeapProfile() : generateMockProfile()
     Math.random = originalRandom
 
     return profile
-  }, [])
+  }, [useHeapProfile])
+
+  // Detect profile metadata for use in components
+  const profileMetadata = useMemo(() => detectProfileMetadata(testProfile), [testProfile])
 
   // Different configurations for different test scenarios
   const configs: Record<string, any> = {
@@ -280,6 +284,7 @@ const TestApp: React.FC = () => {
               textColor={config.textColor}
               primaryColor={config.primaryColor}
               secondaryColor={config.secondaryColor}
+              profileMetadata={profileMetadata}
             />
           </div>
         )}
