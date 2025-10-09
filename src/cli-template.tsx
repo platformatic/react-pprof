@@ -8,12 +8,14 @@ declare global {
     PROFILE_DATA: ArrayBuffer
     PROFILE_FILENAME: string
     PROFILE_TITLE: string
+    PROFILE_PRIMARY_COLOR?: string
+    PROFILE_SECONDARY_COLOR?: string
   }
 }
 
-// Theme colors
-const PRIMARY_COLOR = '#ff4444'
-const SECONDARY_COLOR = '#ffcc66'
+// Theme colors - use window colors if available, otherwise fall back to defaults
+const PRIMARY_COLOR = (typeof window !== 'undefined' && window.PROFILE_PRIMARY_COLOR) || '#ff4444'
+const SECONDARY_COLOR = (typeof window !== 'undefined' && window.PROFILE_SECONDARY_COLOR) || '#ffcc66'
 const BACKGROUND_COLOR = '#1e1e1e'
 const TEXT_COLOR = '#ffffff'
 const HEADER_BG_COLOR = '#2a2a2a'
