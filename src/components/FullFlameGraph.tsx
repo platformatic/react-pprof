@@ -195,7 +195,8 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
 
           let currentNode = root
           const value = sample.value?.[valueIndex] || 1
-          root.value += value
+          // value could be a BigInt, convert to Number safely
+          root.value += Number(value)
           root.sampleCount += 1  // Count each sample
           
           // Build the stack for this sample
@@ -234,7 +235,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
               }
               currentNode.children.push(child)
             }
-            child.value += value
+            child.value += Number(value)
             child.sampleCount += 1  // Count each sample that passes through this node
             currentNode = child
           })

@@ -244,3 +244,88 @@ export function generateMockHeapProfile(): Profile {
     period: 524288, // 512KB sampling rate
   })
 }
+
+export function generateMockProfileWithBigIntValues(): Profile {
+  // Create string table
+  const stringTable = new StringTable()
+
+  // Simple function definitions
+  const functions = [
+    { name: 'main', file: 'main.go', lineRange: [10, 50] },
+    { name: 'compute', file: 'compute.go', lineRange: [25, 100] },
+    { name: 'process', file: 'process.go', lineRange: [45, 200] },
+  ]
+
+  // Create Function objects
+  const profileFunctions: Function[] = []
+  functions.forEach((func, i) => {
+    const funcId = i + 1
+    const nameIdx = stringTable.dedup(func.name)
+    const filenameIdx = stringTable.dedup(func.file)
+
+    profileFunctions.push(new Function({
+      id: funcId,
+      name: nameIdx,
+      filename: filenameIdx,
+      startLine: func.lineRange[0],
+    }))
+  })
+
+  // Create Location objects
+  const locations: Location[] = []
+  profileFunctions.forEach((func, i) => {
+    const locationId = i + 1
+    const lineNumber = functions[i].lineRange[0] + 10
+
+    locations.push(new Location({
+      id: locationId,
+      line: [new Line({
+        functionId: func.id,
+        line: lineNumber,
+      })]
+    }))
+  })
+
+  // Generate samples with BigInt values
+  const samples: Sample[] = []
+
+  for (let i = 0; i < 20; i++) {
+    const locationIds = [1, 2, 3] // Simple stack: main -> compute -> process
+
+    // Create a sample with BigInt values
+    const sample = new Sample({
+      locationId: locationIds,
+      value: [BigInt(1), BigInt(1000000 + i * 10000)], // BigInt values
+    })
+
+    samples.push(sample)
+  }
+
+  // Create value types
+  const sampleType = [
+    new ValueType({
+      type: stringTable.dedup('samples'),
+      unit: stringTable.dedup('count'),
+    }),
+    new ValueType({
+      type: stringTable.dedup('cpu'),
+      unit: stringTable.dedup('nanoseconds'),
+    })
+  ]
+
+  // Create the profile
+  return new Profile({
+    sampleType,
+    sample: samples,
+    location: locations,
+    function: profileFunctions,
+    stringTable,
+    timeNanos: BigInt(Date.now() * 1000000),
+    durationNanos: BigInt(1000000000), // 1 second as BigInt
+    periodType: new ValueType({
+      type: stringTable.dedup('cpu'),
+      unit: stringTable.dedup('nanoseconds'),
+    }),
+    period: 10000000, // 10ms
+  })
+}

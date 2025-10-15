@@ -9,7 +9,7 @@ import { FrameDetails } from '../../../src/components/FrameDetails'
 import { FullFlameGraph } from '../../../src/components/FullFlameGraph'
 import { FlameNode, FrameData, FlameDataProcessor, detectProfileMetadata } from '../../../src/renderer'
 import { fetchProfile } from '../../../src/parser'
-import { generateMockProfile, generateMockHeapProfile } from '../mock-data'
+import { generateMockProfile, generateMockHeapProfile, generateMockProfileWithBigIntValues } from '../mock-data'
 
 // Expose components globally for testing
 declare global {
@@ -66,9 +66,15 @@ const TestApp: React.FC = () => {
   const hottestHeight = params.get('hottestHeight') ? parseInt(params.get('hottestHeight')!) : 10
   const prePopulateStackDetails = params.get('prePopulateStackDetails') === 'true'
   const useHeapProfile = params.get('heapProfile') === 'true'
+  const useBigIntProfile = params.get('bigIntProfile') === 'true'
 
   // Generate consistent mock profile for testing
   const testProfile = useMemo(() => {
+    // If BigInt profile requested, use it directly (no random seeding needed)
+    if (useBigIntProfile) {
+      return generateMockProfileWithBigIntValues()
+    }
+
     // Use a seeded random approach for consistent test results
     const originalRandom = Math.random
     let seed = useHeapProfile ? 54321 : 12345 // Different seed for heap profiles
@@ -82,7 +88,7 @@ const TestApp: React.FC = () => {
     Math.random = originalRandom
 
     return profile
-  }, [useHeapProfile])
+  }, [useHeapProfile, useBigIntProfile])
 
   // Detect profile metadata for use in components
   const profileMetadata = useMemo(() => detectProfileMetadata(testProfile), [testProfile])

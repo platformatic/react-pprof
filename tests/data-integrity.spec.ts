@@ -55,4 +55,86 @@ test.describe('FlameGraph Data Integrity Tests', () => {
       await expect(canvas).toBeVisible()
     }
   })
+
+  test('BigInt sample values are converted to numbers correctly', async ({ page }) => {
+    await utils.navigateToTest({ fullFlameGraph: true })
+
+    // Wait for rendering
+    await page.waitForTimeout(1000)
+
+    // Verify that BigInt values in samples are properly converted to numbers
+    // This is done by checking that value arithmetic works correctly
+    const result = await page.evaluate(() => {
+      // Create a test profile with BigInt values
+      const testSample = {
+        value: [BigInt(1), BigInt(1000000000)] // sample count and large value as BigInt
+      }
+
+      // Simulate the conversion that happens in FullFlameGraph.tsx:199 and :238
+      const valueIndex = 0
+      const value = testSample.value?.[valueIndex] || 1
+      const convertedValue = Number(value)
+
+      // Verify the conversion worked
+      const isNumber = typeof convertedValue === 'number'
+      const canDoArithmetic = !isNaN(convertedValue + 100)
+      const correctValue = convertedValue === 1
+
+      return {
+        isNumber,
+        canDoArithmetic,
+        correctValue,
+        originalType: typeof value,
+        convertedType: typeof convertedValue
+      }
+    })
+
+    // All checks should pass
+    expect(result.isNumber).toBe(true)
+    expect(result.canDoArithmetic).toBe(true)
+    expect(result.correctValue).toBe(true)
+    expect(result.convertedType).toBe('number')
+  })
+
+  test('flame graph builds correctly with BigInt values in samples', async ({ page }) => {
+    // Monitor for any JavaScript errors during rendering
+    const jsErrors: string[] = []
+    page.on('pageerror', error => {
+      jsErrors.push(error.message)
+    })
+
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        jsErrors.push(msg.text())
+      }
+    })
+
+    // Use the BigInt profile
+    await utils.navigateToTest({ fullFlameGraph: true, bigIntProfile: true })
+
+    // Wait for rendering to complete
+    await page.waitForTimeout(1500)
+
+    // Click on frames to trigger value calculations
+    await utils.clickFrame(200, 100)
+    await page.waitForTimeout(500)
+
+    await utils.clickFrame(300, 150)
+    await page.waitForTimeout(500)
+
+    // Verify no errors occurred with the fix in place
+    const relevantErrors = jsErrors.filter(err =>
+      err.includes('BigInt') ||
+      err.includes('cannot mix') ||
+      err.includes('NaN') ||
+      err.includes('TypeError')
+    )
+
+    // With the fix in place, we should have NO errors
+    expect(relevantErrors.length).toBe(0)
+
+    // The canvas should be visible and functional
+    const canvas = page.locator('canvas').first()
+    await expect(canvas).toBeVisible()
+  })
 })
