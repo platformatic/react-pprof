@@ -1,5 +1,5 @@
-import { CameraController } from './CameraController'
-import { FlameNode, FrameData } from './FlameDataProcessor'
+import { CameraController } from './CameraController.js'
+import { FlameNode, FrameData } from './FlameDataProcessor.js'
 
 interface InteractionFrame {
   node: FlameNode

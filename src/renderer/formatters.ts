@@ -1,4 +1,4 @@
-import { ProfileMetadata, isCPUProfile, isHeapProfile } from './ProfileMetadata'
+import { ProfileMetadata, isCPUProfile, isHeapProfile } from './ProfileMetadata.js'
 
 /**
  * Format a value based on profile type and unit

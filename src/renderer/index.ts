@@ -1,11 +1,11 @@
 // Renderer module exports
 
 // Export the new refactored renderer
-export { FlameGraphRenderer } from './FlameGraphRenderer'
+export { FlameGraphRenderer } from './FlameGraphRenderer.js'
 
 // Export new focused classes and their types
-export { WebGLManager } from './WebGLManager'
-export { CameraController } from './CameraController'
+export { WebGLManager } from './WebGLManager.js'
+export { CameraController } from './CameraController.js'
 export {
   hexToRgb,
   rgbToHex,
@@ -18,11 +18,11 @@ export {
   getContrastColor,
   isValidHex,
   normalizeHex
-} from './colors'
-export { InteractionHandler } from './InteractionHandler'
-export { FlameDataProcessor, type FlameNode, type FrameData } from './FlameDataProcessor'
-export { TextRenderer } from './TextRenderer'
-export { FrameRenderer } from './FrameRenderer'
+} from './colors.js'
+export { InteractionHandler } from './InteractionHandler.js'
+export { FlameDataProcessor, type FlameNode, type FrameData } from './FlameDataProcessor.js'
+export { TextRenderer } from './TextRenderer.js'
+export { FrameRenderer } from './FrameRenderer.js'
 
 // Export profile metadata and formatting utilities
 export {
@@ -33,7 +33,7 @@ export {
   detectProfileMetadata,
   isCPUProfile,
   isHeapProfile
-} from './ProfileMetadata'
+} from './ProfileMetadata.js'
 export {
   formatValue,
   formatTime,
@@ -44,8 +44,8 @@ export {
   getValueLabel,
   getTotalValueLabel,
   getSelfValueLabel
-} from './formatters'
+} from './formatters.js'
 
 // Export utilities
-export * from './shaders'
-export * from './constants'
+export * from './shaders.js'
+export * from './constants.js'

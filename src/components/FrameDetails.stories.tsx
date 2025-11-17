@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { FrameDetails } from './FrameDetails'
-import type { FrameData } from '../renderer'
+import { FrameDetails } from './FrameDetails.js'
+import type { FrameData } from '../renderer/index.js'
 
 const meta = {
   title: 'FrameDetails',

@@ -1,7 +1,7 @@
 // @ts-ignore - React is used in JSX
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { StackDetails } from './StackDetails'
+import { StackDetails } from './StackDetails.js'
 
 const meta = {
   title: 'StackDetails',

@@ -1,8 +1,12 @@
 /* eslint-disable no-console */
 
-const fs = require('fs')
-const path = require('path')
-const { Profile } = require('../../node_modules/pprof-format/dist/index.js')
+import fs from 'fs'
+import path from 'path'
+import { Profile } from '../../node_modules/pprof-format/dist/index.js'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Read the profile file
 const profilePath = path.join(__dirname, 'profile.pprof')

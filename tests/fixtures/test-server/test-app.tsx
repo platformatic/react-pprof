@@ -246,6 +246,7 @@ const TestApp: React.FC = () => {
         <div style={{ width: '100%', height: '600px' }} data-testid="full-flamegraph-container">
           <FullFlameGraph
             profile={config.profile}
+            height={600}
             primaryColor={config.primaryColor}
             secondaryColor={config.secondaryColor}
             backgroundColor={config.backgroundColor}

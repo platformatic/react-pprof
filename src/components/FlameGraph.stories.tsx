@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { useState } from 'react'
-import { FlameGraph } from './FlameGraph'
-import { StackDetails } from './StackDetails'
+import { FlameGraph } from './FlameGraph.js'
+import { StackDetails } from './StackDetails.js'
 import { Profile, StringTable, ValueType, Sample, Location, Function, Line } from 'pprof-format'
 
 // Create a realistic Node.js server profile

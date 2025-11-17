@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { FlameGraphTooltip } from './FlameGraphTooltip'
-import { FlameNode } from '../renderer'
+import { FlameGraphTooltip } from './FlameGraphTooltip.js'
+import { FlameNode } from '../renderer/index.js'
 import { useState, useEffect } from 'react'
 
 const meta = {

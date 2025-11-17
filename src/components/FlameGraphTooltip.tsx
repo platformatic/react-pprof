@@ -1,5 +1,5 @@
 import React from 'react'
-import { FlameNode, ProfileMetadata, formatValue, formatPercentage, formatSampleCount, getMetricLabel, getTotalValueLabel, getSelfValueLabel } from '../renderer'
+import { FlameNode, ProfileMetadata, formatValue, formatPercentage, formatSampleCount, getMetricLabel, getTotalValueLabel, getSelfValueLabel } from '../renderer/index.js'
 
 export interface FlameGraphTooltipProps {
   frameData: FlameNode

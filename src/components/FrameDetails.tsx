@@ -1,5 +1,5 @@
 import React from 'react'
-import { FrameData, ProfileMetadata, formatValue, getSelfValueLabel, getTotalValueLabel } from '../renderer'
+import { FrameData, ProfileMetadata, formatValue, getSelfValueLabel, getTotalValueLabel } from '../renderer/index.js'
 
 export interface FrameDetailsProps {
   frame: FrameData | null

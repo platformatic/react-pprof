@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react'
-import { Profile } from '../parser'
-import { FrameData, FlameNode } from '../renderer'
-import { FrameWithSelfTime } from './HottestFramesBar'
+import { Profile } from '../parser.js'
+import { FrameData, FlameNode } from '../renderer/index.js'
+import { FrameWithSelfTime } from './HottestFramesBar.js'
 
 export interface HottestFramesControlsProps {
   profile: Profile

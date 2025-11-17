@@ -58,6 +58,96 @@ function App() {
 }
 ```
 
+## Server-Side Embedding API
+
+For programmatic generation of embeddable flamegraphs (e.g., for middleware or dynamic HTML generation), use the embedding API that supports rendering multiple graphs efficiently:
+
+```typescript
+import { generateEmbeddableFlameGraph, getFlamegraphBundle } from 'react-pprof'
+import fs from 'fs'
+
+// Get the bundle once (it's cached internally)
+const { bundle } = await getFlamegraphBundle()
+
+// Generate embeddable flamegraphs for multiple profiles
+const cpuProfile = fs.readFileSync('cpu-profile.pb')
+const heapProfile = fs.readFileSync('heap-profile.pb')
+
+const cpuGraph = await generateEmbeddableFlameGraph(cpuProfile, {
+  title: 'CPU Profile',
+  filename: 'cpu-profile.pb',
+  primaryColor: '#ff4444',
+  secondaryColor: '#ffcc66',
+  height: 500
+})
+
+const heapGraph = await generateEmbeddableFlameGraph(heapProfile, {
+  title: 'Heap Profile',
+  filename: 'heap-profile.pb',
+  primaryColor: '#ff4444',
+  secondaryColor: '#ffcc66',
+  height: 500
+})
+
+// Use in your HTML response
+const fullPage = `
+<!DOCTYPE html>
+<html>
+<head><title>Profiles</title></head>
+<body>
+  <h2>CPU Profile</h2>
+  ${cpuGraph.html}
+
+  <h2>Heap Profile</h2>
+  ${heapGraph.html}
+
+  <!-- Include bundle once -->
+  <script>${bundle}</script>
+
+  <!-- Render each graph -->
+  <script>${cpuGraph.script}</script>
+  <script>${heapGraph.script}</script>
+</body>
+</html>
+`
+```
+
+### API
+
+**`getFlamegraphBundle()`**
+
+Returns the reusable React-pprof bundle code (cached after first call). Include this once in your page before rendering any graphs.
+
+```typescript
+Promise<{ bundle: string }>
+```
+
+**`generateEmbeddableFlameGraph(profileBuffer, options)`**
+
+Generates embeddable HTML and JavaScript for a single flamegraph. Can be called multiple times for different graphs on the same page.
+
+```typescript
+interface EmbeddableFlameGraphOptions {
+  title?: string           // Display title (default: 'Profile')
+  filename?: string        // Original filename (default: 'profile.pb')
+  primaryColor?: string    // Primary color (default: '#ff4444')
+  secondaryColor?: string  // Secondary color (default: '#ffcc66')
+  height?: number         // Container height in pixels (default: 500)
+}
+
+interface EmbeddableFlameGraphResult {
+  html: string    // HTML container div with unique ID
+  script: string  // JavaScript code to render into the container
+}
+```
+
+### Key Features
+
+- **Reusable bundle**: The React-pprof bundle is loaded once and cached, improving performance when rendering multiple graphs
+- **No global conflicts**: Each graph uses unique IDs and local variables, so multiple graphs can coexist without conflicts
+- **Self-contained**: Generated HTML includes all necessary styling and structure
+- **Efficient**: Profile data is embedded efficiently and decoded on the client side
+
 ## Command Line Interface (CLI)
 
 This package includes a CLI utility to generate static HTML flamegraphs from pprof files without requiring a running server.

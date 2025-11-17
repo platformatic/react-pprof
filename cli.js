@@ -82,10 +82,10 @@ let profileData
 try {
   const rawData = fs.readFileSync(pprofFile)
   console.log(`Loaded pprof file: ${pprofFile} (${rawData.length} bytes)`)
-  
+
   // Check if the file is gzipped (common with @datadog/pprof output)
   const isGzipped = rawData[0] === 0x1f && rawData[1] === 0x8b
-  
+
   if (isGzipped) {
     console.log('File appears to be gzipped, decompressing...')
     profileData = zlib.gunzipSync(rawData)
@@ -99,51 +99,43 @@ try {
   process.exit(1)
 }
 
-// Read the HTML template and JavaScript bundle
-let htmlTemplate, jsBundle
+// Read the HTML template
+let htmlTemplate
 try {
   htmlTemplate = fs.readFileSync(templatePath, 'utf8')
-  jsBundle = fs.readFileSync(bundlePath, 'utf8')
 } catch (error) {
-  console.error(`Error reading template or bundle: ${error.message}`)
+  console.error(`Error reading template: ${error.message}`)
   process.exit(1)
 }
 
-// Convert profile data to base64 for more reliable embedding
-const profileDataBase64 = profileData.toString('base64')
+// Use the embeddable function to generate the flamegraph (dynamic import for ESM)
+;(async () => {
+  try {
+    const { generateEmbeddableFlameGraph } = await import('./dist/embeddable.js')
+    const { html, script } = await generateEmbeddableFlameGraph(profileData, {
+      title,
+      filename: path.basename(pprofFile),
+      primaryColor,
+      secondaryColor,
+      height: 1000 // CLI uses full page height
+    })
 
-// Create ArrayBuffer from base64 for the frontend, split into chunks for better parsing
-const profileDataJS = `(function() {
-  const base64Data = '${profileDataBase64}';
-  const uint8Array = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-  return uint8Array.buffer;
-})()`
+    // Inject the generated HTML and script into the template
+    const finalHTML = htmlTemplate
+      .replace(/{{TITLE}}/g, title)
+      .replace(/{{FILENAME}}/g, path.basename(pprofFile))
+      .replace('{{PROFILE_DATA}}', '') // Will be set by script
+      .replace('{{PRIMARY_COLOR}}', primaryColor)
+      .replace('{{SECONDARY_COLOR}}', secondaryColor)
+      .replace('</body>', `<script>${script}</script></body>`)
 
-// Copy the JS bundle to the same directory as the output HTML
-const jsPath = outputFile.replace('.html', '.js')
-fs.writeFileSync(jsPath, jsBundle)
-
-// Replace the external script reference with correct path
-const htmlWithInlineJS = htmlTemplate.replace(
-  '<script defer src="flamegraph.js"></script>',
-  `<script defer src="${path.basename(jsPath)}"></script>`
-)
-
-// Inject the profile data, title, filename, and colors into the template
-const finalHTML = htmlWithInlineJS
-  .replace(/{{TITLE}}/g, title)
-  .replace(/{{FILENAME}}/g, path.basename(pprofFile))
-  .replace('{{PROFILE_DATA}}', profileDataJS)
-  .replace('{{PRIMARY_COLOR}}', primaryColor)
-  .replace('{{SECONDARY_COLOR}}', secondaryColor)
-
-// Write the final HTML file
-try {
-  fs.writeFileSync(outputFile, finalHTML)
-  console.log(`Generated HTML output: ${outputFile}`)
-  console.log(`Profile data embedded: ${profileData.length} bytes`)
-  console.log(`Open ${outputFile} in a web browser to view the flame graph`)
-} catch (error) {
-  console.error(`Error writing output file: ${error.message}`)
-  process.exit(1)
-}
+    // Write the final HTML file
+    fs.writeFileSync(outputFile, finalHTML)
+    console.log(`Generated HTML output: ${outputFile}`)
+    console.log(`Profile data embedded: ${profileData.length} bytes`)
+    console.log(`Open ${outputFile} in a web browser to view the flame graph`)
+  } catch (error) {
+    console.error(`Error: ${error.message}`)
+    process.exit(1)
+  }
+})()

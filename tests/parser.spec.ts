@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
+const __dirname = import.meta.dirname
+
 test.describe('fetchProfile Function', () => {
 
   test.beforeEach(async ({ page }) => {

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
-import { getFrameColorHexBySameDepthRatio } from '../renderer/colors'
-import { ProfileMetadata, formatValue, formatPercentage, formatSampleCount, getMetricLabel, getSelfValueLabel, getTotalValueLabel } from '../renderer'
+import { getFrameColorHexBySameDepthRatio } from '../renderer/colors.js'
+import { ProfileMetadata, formatValue, formatPercentage, formatSampleCount, getMetricLabel, getSelfValueLabel, getTotalValueLabel } from '../renderer/index.js'
 
 // Internal component interfaces
 interface EmptyStateProps {

@@ -1,5 +1,5 @@
 import { Profile } from 'pprof-format'
-import { ProfileMetadata, detectProfileMetadata } from './ProfileMetadata'
+import { ProfileMetadata, detectProfileMetadata } from './ProfileMetadata.js'
 
 // FlameNode and FrameData types belong here since this class owns them
 export interface FlameNode {

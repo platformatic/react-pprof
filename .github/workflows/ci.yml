@@ -14,7 +14,7 @@ jobs:
     name: Test ${{ matrix.test-file }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.54.1-noble
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
 
     strategy:
       fail-fast: false

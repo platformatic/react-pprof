@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { FullFlameGraph } from './FullFlameGraph'
+import { FullFlameGraph } from './FullFlameGraph.js'
 import { Profile, StringTable, ValueType, Sample, Location, Function, Line } from 'pprof-format'
 
 // Use the same profile creation function as other stories
