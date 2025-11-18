@@ -1,11 +1,11 @@
 import { Profile } from 'pprof-format'
-import { WebGLManager } from './WebGLManager'
-import { CameraController } from './CameraController'
-import { InteractionHandler } from './InteractionHandler'
-import { FlameDataProcessor, FlameNode, FrameData } from './FlameDataProcessor'
-import { TextRenderer } from './TextRenderer'
-import { FrameRenderer } from './FrameRenderer'
-import { hexToRgb } from './colors'
+import { WebGLManager } from './WebGLManager.js'
+import { CameraController } from './CameraController.js'
+import { InteractionHandler } from './InteractionHandler.js'
+import { FlameDataProcessor, FlameNode, FrameData } from './FlameDataProcessor.js'
+import { TextRenderer } from './TextRenderer.js'
+import { FrameRenderer } from './FrameRenderer.js'
+import { hexToRgb } from './colors.js'
 
 /**
  * Main renderer class that orchestrates all rendering components

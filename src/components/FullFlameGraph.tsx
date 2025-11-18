@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useRef } from 'react'
-import { Profile } from '../parser'
-import { FrameData, FlameNode, detectProfileMetadata, FlameGraphRenderer } from '../renderer'
-import { HottestFramesBar, type FrameWithSelfTime } from './HottestFramesBar'
-import { HottestFramesControls } from './HottestFramesControls'
-import { FrameDetails } from './FrameDetails'
-import { FlameGraph } from './FlameGraph'
-import { StackDetails } from './StackDetails'
+import { Profile } from '../parser.js'
+import { FrameData, FlameNode, detectProfileMetadata, FlameGraphRenderer } from '../renderer/index.js'
+import { HottestFramesBar, type FrameWithSelfTime } from './HottestFramesBar.js'
+import { HottestFramesControls } from './HottestFramesControls.js'
+import { FrameDetails } from './FrameDetails.js'
+import { FlameGraph } from './FlameGraph.js'
+import { StackDetails } from './StackDetails.js'
 
 export interface FullFlameGraphProps {
   profile: Profile
@@ -24,7 +24,7 @@ export interface FullFlameGraphProps {
 
 export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   profile,
-  height = 500,
+  height,
   primaryColor = '#ff4444',
   secondaryColor = '#ffcc66',
   backgroundColor = '#1e1e1e',
@@ -290,13 +290,20 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   // Find the current frame based on selection
   const currentFrame = frames.find(f => selectedFrame && f.nodeId === selectedFrame.id)
 
+  // Use a ref to measure the container
+  const containerRef = useRef<HTMLDivElement>(null)
+
   return (
-    <div style={{
-      backgroundColor,
-      padding: '20px',
-      borderRadius: '4px',
-      position: 'relative',
-    }}>
+    <div
+      ref={containerRef}
+      style={{
+        backgroundColor,
+        padding: '20px',
+        borderRadius: '4px',
+        position: 'relative',
+        boxSizing: 'border-box',
+      }}
+    >
       {showHottestFrames && (
         <div style={{ marginBottom: '10px' }}>
           <HottestFramesBar

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Profile } from '../parser'
-import { FrameData, FlameNode } from '../renderer'
+import { FrameData, FlameNode } from '../renderer/index.js'
 
 export interface HottestFramesBarProps {
   profile: Profile

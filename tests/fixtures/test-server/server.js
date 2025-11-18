@@ -1,9 +1,13 @@
 /* eslint-disable no-console */
 
-const express = require('express')
-const webpack = require('webpack')
-const webpackDevMiddleware = require('webpack-dev-middleware')
-const path = require('path')
+import express from 'express'
+import webpack from 'webpack'
+import webpackDevMiddleware from 'webpack-dev-middleware'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 // Use fixed port for Playwright webServer
@@ -19,7 +23,11 @@ const testWebpackConfig = {
     publicPath: '/'
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx']
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    extensionAlias: {
+      '.js': ['.ts', '.tsx', '.js'],
+      '.mjs': ['.mts', '.mjs']
+    }
   },
   module: {
     rules: [
@@ -68,4 +76,4 @@ const server = app.listen(port, () => {
   console.log(`Test server running at http://localhost:${port}`)
 })
 
-module.exports = { server, port }
+export { server, port }

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { HottestFramesBar } from './HottestFramesBar'
+import { HottestFramesBar } from './HottestFramesBar.js'
 import { Profile, StringTable, ValueType, Sample, Location, Function, Line } from 'pprof-format'
 
 // Import the same profile creation function used in FlameGraph stories

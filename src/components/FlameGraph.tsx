@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react'
-import { FlameGraphRenderer, FlameNode, FrameData } from '../renderer'
-import { Profile } from '../parser'
-import { FlameGraphTooltip } from './FlameGraphTooltip'
+import { FlameGraphRenderer, FlameNode, FrameData } from '../renderer/index.js'
+import { Profile } from '../parser.js'
+import { FlameGraphTooltip } from './FlameGraphTooltip.js'
 
 export interface FlameGraphProps {
   profile: Profile
@@ -489,6 +489,8 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
       style={{
         width: typeof width === 'number' ? `${width}px` : width,
         height: useExplicitHeight ? (typeof height === 'number' ? `${height}px` : height) : (computedHeight !== null ? `${computedHeight}px` : undefined),
+        flex: useExplicitHeight ? undefined : 1,
+        minHeight: useExplicitHeight ? undefined : 0,
         position: 'relative',
         backgroundColor
       }}

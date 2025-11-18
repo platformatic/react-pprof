@@ -1,4 +1,4 @@
-import { getMainShaders, getTextShaders } from './shaders'
+import { getMainShaders, getTextShaders } from './shaders.js'
 
 /**
  * Manages WebGL context, program creation, and shader compilation

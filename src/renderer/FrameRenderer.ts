@@ -1,7 +1,7 @@
 import { mat3 } from 'gl-matrix'
-import { WebGLManager } from './WebGLManager'
-import { FlameNode } from './FlameDataProcessor'
-import { getFrameColorBySameDepthRatio } from './colors'
+import { WebGLManager } from './WebGLManager.js'
+import { FlameNode } from './FlameDataProcessor.js'
+import { getFrameColorBySameDepthRatio } from './colors.js'
 
 /**
  * Handles rendering of flame graph frames with proper inset borders

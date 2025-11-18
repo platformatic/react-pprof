@@ -26,10 +26,10 @@
   },
   "include": ["src"],
   "exclude": [
-    "node_modules", 
-    "dist", 
-    "src/**/*.stories.tsx", 
-    "src/**/*.spec.ts", 
+    "node_modules",
+    "dist",
+    "src/**/*.stories.tsx",
+    "src/**/*.spec.ts",
     "src/**/*.test.ts",
     "src/cli-template.tsx",
     "src/cli-template.html"

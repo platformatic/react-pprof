@@ -1,6 +1,6 @@
 import { mat3 } from 'gl-matrix'
-import { WebGLManager } from './WebGLManager'
-import { FlameNode } from './FlameDataProcessor'
+import { WebGLManager } from './WebGLManager.js'
+import { FlameNode } from './FlameDataProcessor.js'
 
 interface CharMetrics {
   x: number

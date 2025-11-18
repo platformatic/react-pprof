@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { HottestFramesControls } from './HottestFramesControls'
+import { HottestFramesControls } from './HottestFramesControls.js'
 import { Profile, StringTable, ValueType, Sample, Location, Function, Line } from 'pprof-format'
-import type { FrameData } from '../renderer'
+import type { FrameData } from '../renderer/index.js'
 
 // Create a sample profile for testing
 const createSampleProfile = (): Profile => {
