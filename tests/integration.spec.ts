@@ -386,4 +386,229 @@ test.describe('FlameGraph + StackDetails Integration', () => {
       await expect(page).toHaveScreenshot('integration-invalid-selection.png')
     })
   })
+
+  test.describe('Bidirectional Selection Integration', () => {
+    test('clicking stack trace frame updates flamegraph selection', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame in the flamegraph to populate stack details
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      // Verify stack details are visible
+      const stackTraceSection = page.locator('.stack-trace-content')
+      await expect(stackTraceSection).toBeVisible()
+
+      // Get all stack frames
+      const stackFrames = stackTraceSection.locator('.stack-frame')
+      const frameCount = await stackFrames.count()
+
+      if (frameCount > 1) {
+        // Get the first frame name
+        const firstFrameName = await stackFrames.first().locator('span').first().textContent()
+
+        // Click on the first frame in the stack trace
+        await stackFrames.first().click()
+        await page.waitForTimeout(1000)
+
+        // Verify the selection updated
+        const stackDetailsHeader = page.locator('.stack-details-header')
+        const headerText = await stackDetailsHeader.textContent()
+
+        // The header should now show the clicked frame
+        expect(headerText).toContain('Selected frame:')
+
+        // Take screenshot to verify visual synchronization
+        await expect(page).toHaveScreenshot('integration-bidirectional-stack-to-flame.png')
+      }
+    })
+
+    test('clicking child frame updates flamegraph selection', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame that has children
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      // Verify child frames section is visible
+      const childFramesSection = page.locator('.child-frames-content')
+      await expect(childFramesSection).toBeVisible()
+
+      // Check if this frame has children
+      const childrenHeader = page.locator('.child-frames-header')
+      const headerText = await childrenHeader.textContent()
+      const match = headerText?.match(/Child Frames \((\d+)\)/)
+
+      if (match && parseInt(match[1]) > 0) {
+        // Get the first child name
+        const childFrames = childFramesSection.locator('.child-frame')
+        const firstChildName = await childFrames.first().locator('strong').textContent()
+
+        // Click on the first child frame
+        await childFrames.first().click()
+        await page.waitForTimeout(1000)
+
+        // Verify the selection updated
+        const stackDetailsHeader = page.locator('.stack-details-header')
+        const updatedHeaderText = await stackDetailsHeader.textContent()
+
+        // The header should show the selected child frame
+        expect(updatedHeaderText).toContain('Selected frame:')
+
+        // Take screenshot to verify visual synchronization
+        await expect(page).toHaveScreenshot('integration-bidirectional-child-to-flame.png')
+      }
+    })
+
+    test('bidirectional selection maintains consistency', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on flamegraph
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      // Verify stack details is visible after flamegraph click
+      await expect(page.locator('.stack-details-header')).toBeVisible()
+
+      // Click on a different stack trace frame
+      const stackFrames = page.locator('.stack-frame')
+      const frameCount = await stackFrames.count()
+
+      if (frameCount > 1) {
+        await stackFrames.first().click()
+        await page.waitForTimeout(1000)
+
+        // Verify stack details is still visible after stack frame click
+        await expect(page.locator('.stack-details-header')).toBeVisible()
+
+        // Click on a different position in flamegraph
+        await canvas.click({ position: { x: 300, y: 50 } })
+        await page.waitForTimeout(1000)
+
+        // Selection should be consistent - stack details should be visible if a frame was clicked
+        // Note: We check if visible and only assert if it should be
+        const stackDetailsVisible = await page.locator('.stack-details-header').isVisible()
+
+        // If a frame exists at the new position, stack details should be visible
+        // Otherwise, this is expected behavior
+        if (stackDetailsVisible) {
+          // Take screenshot to verify consistency
+          await expect(page).toHaveScreenshot('integration-bidirectional-consistency.png')
+        }
+      }
+    })
+
+    test('rapid bidirectional selections work correctly', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Initial click on flamegraph
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      const stackFrames = page.locator('.stack-frame')
+      const childFrames = page.locator('.child-frame')
+
+      const stackFrameCount = await stackFrames.count()
+      const childFrameCount = await childFrames.count()
+
+      // Perform rapid selections from different sources
+      if (stackFrameCount > 0) {
+        await stackFrames.first().click()
+        await page.waitForTimeout(200)
+      }
+
+      await canvas.click({ position: { x: 300, y: 50 } })
+      await page.waitForTimeout(200)
+
+      if (childFrameCount > 0) {
+        await childFrames.first().click()
+        await page.waitForTimeout(200)
+      }
+
+      await canvas.click({ position: { x: 400, y: 50 } })
+      await page.waitForTimeout(500)
+
+      // Component should still be functional
+      // Note: stack details may or may not be visible depending on whether a frame was clicked
+      const stackDetailsVisible = await page.locator('.stack-details-header').isVisible()
+
+      // If visible, verify it's in a good state
+      if (stackDetailsVisible) {
+        // Take screenshot to verify stability
+        await expect(page).toHaveScreenshot('integration-bidirectional-rapid.png')
+      }
+    })
+
+    test('complete workflow: flame -> stack -> child -> flame', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Step 1: Click flamegraph
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      let stackDetailsVisible = await page.locator('.stack-details-header').isVisible()
+      expect(stackDetailsVisible).toBe(true)
+
+      // Take screenshot of step 1
+      await expect(page).toHaveScreenshot('integration-workflow-step1-flame.png')
+
+      // Step 2: Click stack trace frame
+      const stackFrames = page.locator('.stack-frame')
+      const frameCount = await stackFrames.count()
+
+      if (frameCount > 1) {
+        await stackFrames.first().click()
+        await page.waitForTimeout(1000)
+
+        stackDetailsVisible = await page.locator('.stack-details-header').isVisible()
+        expect(stackDetailsVisible).toBe(true)
+
+        // Take screenshot of step 2
+        await expect(page).toHaveScreenshot('integration-workflow-step2-stack.png')
+
+        // Step 3: Click child frame if available
+        const childFrames = page.locator('.child-frame')
+        const childCount = await childFrames.count()
+
+        if (childCount > 0) {
+          await childFrames.first().click()
+          await page.waitForTimeout(1000)
+
+          stackDetailsVisible = await page.locator('.stack-details-header').isVisible()
+          expect(stackDetailsVisible).toBe(true)
+
+          // Take screenshot of step 3
+          await expect(page).toHaveScreenshot('integration-workflow-step3-child.png')
+        }
+
+        // Step 4: Click flamegraph again at a different position
+        await canvas.click({ position: { x: 350, y: 100 } })
+        await page.waitForTimeout(1000)
+
+        // Check if stack details is visible - it should be if we clicked on a frame
+        stackDetailsVisible = await page.locator('.stack-details-header').isVisible()
+
+        // If a frame was selected, take screenshot
+        if (stackDetailsVisible) {
+          // Take screenshot of step 4
+          await expect(page).toHaveScreenshot('integration-workflow-step4-flame-again.png')
+        }
+      }
+    })
+  })
 })

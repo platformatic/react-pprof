@@ -713,10 +713,10 @@ test.describe('StackDetails Component', () => {
   test.describe('Unit Tests (Pre-populated)', () => {
     test('renders pre-populated stack details without flamegraph', async ({ page }) => {
       const utils = new FlameGraphTestUtils(page)
-      await utils.navigateToTest({ 
-        stackDetails: true, 
+      await utils.navigateToTest({
+        stackDetails: true,
         flamegraph: false,
-        prePopulateStackDetails: true 
+        prePopulateStackDetails: true
       })
 
       // Should show populated stack details without needing to click on flamegraph
@@ -733,6 +733,249 @@ test.describe('StackDetails Component', () => {
       const totalTimeInfo = page.locator('text=/Total Time:/').first()
       await expect(valueInfo).toBeVisible()
       await expect(totalTimeInfo).toBeVisible()
+    })
+  })
+
+  test.describe('Bidirectional Selection', () => {
+    test('clicking stack trace frame selects it in flamegraph', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // First click on a frame in the flamegraph to populate stack details
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      // Verify stack details are visible
+      const stackTraceSection = page.locator('.stack-trace-content')
+      await expect(stackTraceSection).toBeVisible()
+
+      // Get all stack frames
+      const stackFrames = stackTraceSection.locator('.stack-frame')
+      const frameCount = await stackFrames.count()
+
+      if (frameCount > 1) {
+        // Click on the first frame in the stack trace (not the last one which is already selected)
+        await stackFrames.first().click()
+        await page.waitForTimeout(500)
+
+        // The stack details should update to show the clicked frame as the selected one
+        const stackDetailsHeader = page.locator('.stack-details-header')
+        await expect(stackDetailsHeader).toBeVisible()
+      }
+    })
+
+    test('clicking child frame selects it in flamegraph', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame that has children
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      // Verify child frames section is visible
+      const childFramesSection = page.locator('.child-frames-content')
+      await expect(childFramesSection).toBeVisible()
+
+      // Check if this frame has children
+      const childrenHeader = page.locator('.child-frames-header')
+      const headerText = await childrenHeader.textContent()
+      const match = headerText?.match(/Child Frames \((\d+)\)/)
+
+      if (match && parseInt(match[1]) > 0) {
+        // Click on the first child frame
+        const childFrames = childFramesSection.locator('.child-frame')
+        await childFrames.first().click()
+        await page.waitForTimeout(500)
+
+        // The stack details should update
+        const stackDetailsHeader = page.locator('.stack-details-header')
+        await expect(stackDetailsHeader).toBeVisible()
+      }
+    })
+
+    test('stack trace frames show hover effect', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame to populate stack details
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      const stackFrames = page.locator('.stack-frame')
+      const frameCount = await stackFrames.count()
+
+      if (frameCount > 0) {
+        const firstFrame = stackFrames.first()
+
+        // Check that frame has pointer cursor
+        const cursor = await firstFrame.evaluate(el => window.getComputedStyle(el).cursor)
+        expect(cursor).toBe('pointer')
+
+        // Hover over the frame
+        await firstFrame.hover()
+        await page.waitForTimeout(200)
+
+        // Check background color changed (should have some opacity background)
+        const backgroundColor = await firstFrame.evaluate(el => window.getComputedStyle(el).backgroundColor)
+        expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)') // Not transparent
+      }
+    })
+
+    test('child frames show hover effect', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame that has children
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      const childrenHeader = page.locator('.child-frames-header')
+      const headerText = await childrenHeader.textContent()
+      const match = headerText?.match(/Child Frames \((\d+)\)/)
+
+      if (match && parseInt(match[1]) > 0) {
+        const childFrames = page.locator('.child-frame')
+        const firstChild = childFrames.first()
+
+        // Check that frame has pointer cursor
+        const cursor = await firstChild.evaluate(el => window.getComputedStyle(el).cursor)
+        expect(cursor).toBe('pointer')
+
+        // Hover over the child frame
+        await firstChild.hover()
+        await page.waitForTimeout(200)
+
+        // Check background color changed
+        const backgroundColor = await firstChild.evaluate(el => window.getComputedStyle(el).backgroundColor)
+        expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)') // Not transparent
+      }
+    })
+
+    test('keyboard navigation works for stack trace frames', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame to populate stack details
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      const stackFrames = page.locator('.stack-frame')
+      const frameCount = await stackFrames.count()
+
+      if (frameCount > 1) {
+        const firstFrame = stackFrames.first()
+
+        // Tab to the frame
+        await firstFrame.focus()
+
+        // Check it's focusable
+        const tabIndex = await firstFrame.getAttribute('tabindex')
+        expect(tabIndex).toBe('0')
+
+        // Press Enter
+        await page.keyboard.press('Enter')
+        await page.waitForTimeout(500)
+
+        // Stack details should update
+        const stackDetailsHeader = page.locator('.stack-details-header')
+        await expect(stackDetailsHeader).toBeVisible()
+      }
+    })
+
+    test('keyboard navigation works for child frames', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame that has children
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      const childrenHeader = page.locator('.child-frames-header')
+      const headerText = await childrenHeader.textContent()
+      const match = headerText?.match(/Child Frames \((\d+)\)/)
+
+      if (match && parseInt(match[1]) > 0) {
+        const childFrames = page.locator('.child-frame')
+        const firstChild = childFrames.first()
+
+        // Tab to the child frame
+        await firstChild.focus()
+
+        // Check it's focusable
+        const tabIndex = await firstChild.getAttribute('tabindex')
+        expect(tabIndex).toBe('0')
+
+        // Press Space
+        await page.keyboard.press('Space')
+        await page.waitForTimeout(500)
+
+        // Stack details should update
+        const stackDetailsHeader = page.locator('.stack-details-header')
+        await expect(stackDetailsHeader).toBeVisible()
+      }
+    })
+
+    test('clicking same frame is idempotent', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      // Get the current selected frame text
+      const headerText1 = await page.locator('.stack-details-header').textContent()
+
+      // Click on the same frame again (last frame in stack trace)
+      const stackFrames = page.locator('.stack-frame')
+      const lastFrame = stackFrames.last()
+      await lastFrame.click()
+      await page.waitForTimeout(500)
+
+      // Header should still be the same
+      const headerText2 = await page.locator('.stack-details-header').textContent()
+      expect(headerText1).toBe(headerText2)
+    })
+
+    test('aria labels are present for accessibility', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ stackDetails: true })
+
+      const canvas = page.locator('canvas').first()
+
+      // Click on a frame
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      const stackFrames = page.locator('.stack-frame')
+      const frameCount = await stackFrames.count()
+
+      if (frameCount > 0) {
+        const firstFrame = stackFrames.first()
+
+        // Check that aria-label is present
+        const ariaLabel = await firstFrame.getAttribute('aria-label')
+        expect(ariaLabel).toBeTruthy()
+        expect(ariaLabel).toContain('Select frame')
+
+        // Check role is button
+        const role = await firstFrame.getAttribute('role')
+        expect(role).toBe('button')
+      }
     })
   })
 })

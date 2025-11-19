@@ -34,6 +34,7 @@ interface StackTraceFrameProps {
   children: any[]
   stackTrace: any[]
   profileMetadata?: ProfileMetadata
+  onFrameClick?: (frame: any) => void
 }
 
 interface StackTraceSectionProps {
@@ -44,6 +45,7 @@ interface StackTraceSectionProps {
   children: any[]
   fontFamily: string
   profileMetadata?: ProfileMetadata
+  onFrameClick?: (frame: any) => void
 }
 
 interface ChildFrameItemProps {
@@ -53,6 +55,7 @@ interface ChildFrameItemProps {
   textColor: string
   primaryColor: string
   profileMetadata?: ProfileMetadata
+  onFrameClick?: (frame: any) => void
 }
 
 interface ChildFramesSectionProps {
@@ -62,6 +65,7 @@ interface ChildFramesSectionProps {
   backgroundColor: string
   fontFamily: string
   profileMetadata?: ProfileMetadata
+  onFrameClick?: (frame: any) => void
 }
 
 // Internal Components
@@ -163,15 +167,47 @@ const StackTraceFrame: React.FC<StackTraceFrameProps> = ({
   primaryColor,
   children: _children,
   stackTrace: _stackTrace,
-  profileMetadata
+  profileMetadata,
+  onFrameClick
 }) => {
   // Use pre-computed self-time from FlameNode
   const selfTimePercentage = ((frame.selfWidth || 0) * 100)
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  const handleClick = () => {
+    if (onFrameClick) {
+      onFrameClick(frame)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
 
   return (
-    <div key={frame.id || `frame-${index}`} className="stack-frame" style={{
-      marginBottom: isLast ? '0' : '16px'
-    }}>
+    <div
+      key={frame.id || `frame-${index}`}
+      className="stack-frame"
+      style={{
+        marginBottom: isLast ? '0' : '16px',
+        cursor: onFrameClick ? 'pointer' : 'default',
+        transition: 'background-color 0.2s ease',
+        backgroundColor: isHovered && onFrameClick ? `${primaryColor}15` : 'transparent',
+        padding: '4px',
+        marginLeft: '-4px',
+        borderRadius: '4px'
+      }}
+      onClick={onFrameClick ? handleClick : undefined}
+      onKeyDown={onFrameClick ? handleKeyDown : undefined}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      tabIndex={onFrameClick ? 0 : undefined}
+      role={onFrameClick ? 'button' : undefined}
+      aria-label={onFrameClick ? `Select frame ${frame.name}` : undefined}
+    >
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -196,7 +232,8 @@ const StackTraceSection: React.FC<StackTraceSectionProps> = ({
   backgroundColor,
   children,
   fontFamily,
-  profileMetadata
+  profileMetadata,
+  onFrameClick
 }) => (
   <div className="stack-trace-section">
     <hr style={{
@@ -233,6 +270,7 @@ const StackTraceSection: React.FC<StackTraceSectionProps> = ({
             children={children}
             stackTrace={stackTrace}
             profileMetadata={profileMetadata}
+            onFrameClick={onFrameClick}
           />
         )
       })}
@@ -246,17 +284,49 @@ const ChildFrameItem: React.FC<ChildFrameItemProps> = ({
   isLast,
   textColor,
   primaryColor,
-  profileMetadata
+  profileMetadata,
+  onFrameClick
 }) => {
   // Use pre-computed self-time from FlameNode
   const selfTimePercentage = ((child.selfWidth || 0) * 100)
+  const [isHovered, setIsHovered] = React.useState(false)
+
+  const handleClick = () => {
+    if (onFrameClick) {
+      onFrameClick(child)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      handleClick()
+    }
+  }
 
   return (
-    <div key={child.id || `child-${index}`} className="child-frame" style={{
-      marginBottom: isLast ? '0' : '12px',
-      paddingBottom: isLast ? '0' : '8px',
-      borderBottom: isLast ? 'none' : `1px solid ${primaryColor}10`
-    }}>
+    <div
+      key={child.id || `child-${index}`}
+      className="child-frame"
+      style={{
+        marginBottom: isLast ? '0' : '12px',
+        paddingBottom: isLast ? '0' : '8px',
+        borderBottom: isLast ? 'none' : `1px solid ${primaryColor}10`,
+        cursor: onFrameClick ? 'pointer' : 'default',
+        transition: 'background-color 0.2s ease',
+        backgroundColor: isHovered && onFrameClick ? `${primaryColor}15` : 'transparent',
+        padding: '4px',
+        marginLeft: '-4px',
+        borderRadius: '4px'
+      }}
+      onClick={onFrameClick ? handleClick : undefined}
+      onKeyDown={onFrameClick ? handleKeyDown : undefined}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      tabIndex={onFrameClick ? 0 : undefined}
+      role={onFrameClick ? 'button' : undefined}
+      aria-label={onFrameClick ? `Select frame ${child.name}` : undefined}
+    >
       <div style={{ marginBottom: '4px' }}>
         <strong style={{ color: textColor }}>{typeof child.name === 'object' ? JSON.stringify(child.name) : child.name}</strong>
       </div>
@@ -271,7 +341,8 @@ const ChildFramesSection: React.FC<ChildFramesSectionProps> = ({
   primaryColor,
   backgroundColor,
   fontFamily,
-  profileMetadata
+  profileMetadata,
+  onFrameClick
 }) => (
   <div className="child-frames-section">
     <hr style={{
@@ -311,6 +382,7 @@ const ChildFramesSection: React.FC<ChildFramesSectionProps> = ({
               textColor={textColor}
               primaryColor={primaryColor}
               profileMetadata={profileMetadata}
+              onFrameClick={onFrameClick}
             />
           )
         })
@@ -332,6 +404,7 @@ export interface StackDetailsProps {
   height?: number | string
   allFrames?: any[] // All frames in the profile for accurate color calculation
   profileMetadata?: ProfileMetadata
+  onFrameClick?: (frame: any) => void
 }
 
 export const StackDetails: React.FC<StackDetailsProps> = ({
@@ -346,7 +419,8 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
   width = '100%',
   height = 'auto',
   allFrames = [],
-  profileMetadata
+  profileMetadata,
+  onFrameClick
 }) => {
   // Sort children by descending weight (value)
   const sortedChildren = useMemo(() => {
@@ -435,6 +509,7 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
         children={children}
         fontFamily={fontFamily}
         profileMetadata={profileMetadata}
+        onFrameClick={onFrameClick}
       />
 
       <ChildFramesSection
@@ -444,6 +519,7 @@ export const StackDetails: React.FC<StackDetailsProps> = ({
         backgroundColor={backgroundColor}
         fontFamily={fontFamily}
         profileMetadata={profileMetadata}
+        onFrameClick={onFrameClick}
       />
     </div>
   )
