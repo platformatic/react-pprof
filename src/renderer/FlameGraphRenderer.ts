@@ -296,6 +296,14 @@ export class FlameGraphRenderer {
   }
 
   /**
+   * Handle scroll event for vertical scrolling
+   */
+  handleScroll(deltaY: number): void {
+    this.#interaction.handleScroll(deltaY)
+    this.render()
+  }
+
+  /**
    * Handle scroll wheel event for zooming
    */
   handleWheel(x: number, y: number, deltaY: number, speed: number = 0.05, inverted: boolean = false): void {
