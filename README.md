@@ -410,6 +410,18 @@ The flame graph uses a gradient of colors between the primary and secondary colo
 - **Mouse Move**: Tooltip follows cursor
 - **Mouse Leave**: Hide tooltip
 
+### Keyboard Navigation
+
+The flame graph supports full keyboard navigation for accessibility and power users:
+
+- **Arrow Up** (↑): Navigate to the parent frame (zoom out one level in the call stack)
+- **Arrow Down** (↓): Navigate to the first child frame (zoom into the largest child by value)
+- **Arrow Left** (←): Navigate to the previous sibling frame (move to the frame before the current one at the same stack level)
+- **Arrow Right** (→): Navigate to the next sibling frame (move to the frame after the current one at the same stack level)
+- **Escape** or **Home**: Reset zoom to show the complete flame graph
+
+The canvas is focusable (tabIndex=0) and includes appropriate ARIA attributes for screen readers. Keyboard navigation automatically zooms to each selected frame and triggers the `onFrameClick` callback with the appropriate frame data.
+
 ## Testing
 
 ### Running Tests

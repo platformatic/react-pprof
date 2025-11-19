@@ -289,6 +289,39 @@ export class FlameGraphTestUtils {
     await this.page.keyboard.press('Escape')
     await this.page.waitForTimeout(100)
   }
+
+  /**
+   * Focus the canvas element
+   */
+  async focusCanvas() {
+    const canvas = await this.getCanvasElement()
+    await canvas.focus()
+    await this.page.waitForTimeout(100)
+  }
+
+  /**
+   * Press arrow keys for navigation
+   */
+  async pressArrowKey(key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') {
+    await this.page.keyboard.press(key)
+    await this.page.waitForTimeout(600) // Wait for zoom animation
+  }
+
+  /**
+   * Press Escape to reset zoom
+   */
+  async pressEscape() {
+    await this.page.keyboard.press('Escape')
+    await this.page.waitForTimeout(600) // Wait for zoom animation
+  }
+
+  /**
+   * Press Home to reset zoom
+   */
+  async pressHome() {
+    await this.page.keyboard.press('Home')
+    await this.page.waitForTimeout(600) // Wait for zoom animation
+  }
 }
 
 export const COMMON_POSITIONS = {

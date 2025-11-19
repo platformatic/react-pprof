@@ -440,6 +440,319 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
     return foundFrame
   }
 
+  // Helper function to find a frame node by ID
+  const findFrameById = (frameId: string | null): FlameNode | null => {
+    if (!frameId || !rendererRef.current) {return null}
+
+    const frames = (rendererRef.current as any).frames
+    const frame = frames.find((f: any) => f.node.id === frameId)
+    return frame?.node || null
+  }
+
+  // Keyboard navigation: Navigate to parent frame
+  const selectParentFrame = () => {
+    if (!selectedFrame || !rendererRef.current) {return}
+
+    const currentFrame = findFrameById(selectedFrame)
+    if (!currentFrame) {return}
+
+    // Get parent by using the parent pointer if available, or by parsing the ID
+    let parentFrame: FlameNode | null = null
+
+    if (currentFrame.parent) {
+      parentFrame = currentFrame.parent
+    } else {
+      // Parse parent from ID path (e.g., "root/main/handler" -> "root/main")
+      const pathParts = selectedFrame.split('/')
+      if (pathParts.length > 1) {
+        const parentId = pathParts.slice(0, -1).join('/')
+        parentFrame = findFrameById(parentId)
+      }
+    }
+
+    if (parentFrame) {
+      setSelectedFrame(parentFrame.id)
+
+      // Zoom to parent frame
+      const frames = (rendererRef.current as any).frames
+      const parentFrameData = frames.find((f: any) => f.node.id === parentFrame!.id)
+      if (parentFrameData) {
+        const logicalWidth = (rendererRef.current as any).logicalWidth
+        const x1 = parentFrameData.x1 * logicalWidth
+        const x2 = parentFrameData.x2 * logicalWidth
+
+        const camera = (rendererRef.current as any).camera
+        camera.zoomToFrame(x1, x2)
+      }
+
+      if (onFrameClick && parentFrame) {
+        // Build stack trace and children for callback
+        const stackTrace: FlameNode[] = []
+        let current: FlameNode | undefined = parentFrame
+        while (current) {
+          stackTrace.unshift(current)
+          current = current.parent
+        }
+        onFrameClick(
+          {
+            id: parentFrame.id,
+            name: parentFrame.name,
+            value: parentFrame.value,
+            selfValue: parentFrame.selfValue,
+            depth: parentFrame.depth,
+            x: parentFrame.x,
+            width: parentFrame.width,
+            selfWidth: parentFrame.selfWidth,
+            functionName: parentFrame.name,
+            fileName: parentFrame.fileName,
+            lineNumber: parentFrame.lineNumber,
+            totalValue: parentFrame.value
+          },
+          stackTrace,
+          parentFrame.children
+        )
+      }
+
+      rendererRef.current.render()
+    }
+  }
+
+  // Keyboard navigation: Navigate to first child frame
+  const selectFirstChild = () => {
+    if (!selectedFrame || !rendererRef.current) {return}
+
+    const currentFrame = findFrameById(selectedFrame)
+    if (!currentFrame || currentFrame.children.length === 0) {return}
+
+    // Select the largest child (first child, as they're sorted by value)
+    const firstChild = currentFrame.children[0]
+
+    setSelectedFrame(firstChild.id)
+
+    // Zoom to child frame
+    const frames = (rendererRef.current as any).frames
+    const childFrameData = frames.find((f: any) => f.node.id === firstChild.id)
+    if (childFrameData) {
+      const logicalWidth = (rendererRef.current as any).logicalWidth
+      const x1 = childFrameData.x1 * logicalWidth
+      const x2 = childFrameData.x2 * logicalWidth
+
+      const camera = (rendererRef.current as any).camera
+      camera.zoomToFrame(x1, x2)
+    }
+
+    if (onFrameClick) {
+      // Build stack trace and children for callback
+      const stackTrace: FlameNode[] = []
+      let current: FlameNode | undefined = firstChild
+      while (current) {
+        stackTrace.unshift(current)
+        current = current.parent
+      }
+      onFrameClick(
+        {
+          id: firstChild.id,
+          name: firstChild.name,
+          value: firstChild.value,
+          selfValue: firstChild.selfValue,
+          depth: firstChild.depth,
+          x: firstChild.x,
+          width: firstChild.width,
+          selfWidth: firstChild.selfWidth,
+          functionName: firstChild.name,
+          fileName: firstChild.fileName,
+          lineNumber: firstChild.lineNumber,
+          totalValue: firstChild.value
+        },
+        stackTrace,
+        firstChild.children
+      )
+    }
+
+    rendererRef.current.render()
+  }
+
+  // Keyboard navigation: Navigate to next sibling frame
+  const selectNextSibling = () => {
+    if (!selectedFrame || !rendererRef.current) {return}
+
+    const currentFrame = findFrameById(selectedFrame)
+    if (!currentFrame) {return}
+
+    // Get siblings from parent
+    const parent = currentFrame.parent
+    if (!parent) {return}
+
+    const siblings = parent.children
+    const currentIndex = siblings.findIndex(f => f.id === selectedFrame)
+
+    if (currentIndex < 0 || currentIndex >= siblings.length - 1) {return}
+
+    const nextSibling = siblings[currentIndex + 1]
+
+    setSelectedFrame(nextSibling.id)
+
+    // Zoom to sibling frame
+    const frames = (rendererRef.current as any).frames
+    const siblingFrameData = frames.find((f: any) => f.node.id === nextSibling.id)
+    if (siblingFrameData) {
+      const logicalWidth = (rendererRef.current as any).logicalWidth
+      const x1 = siblingFrameData.x1 * logicalWidth
+      const x2 = siblingFrameData.x2 * logicalWidth
+
+      const camera = (rendererRef.current as any).camera
+      camera.zoomToFrame(x1, x2)
+    }
+
+    if (onFrameClick) {
+      // Build stack trace and children for callback
+      const stackTrace: FlameNode[] = []
+      let current: FlameNode | undefined = nextSibling
+      while (current) {
+        stackTrace.unshift(current)
+        current = current.parent
+      }
+      onFrameClick(
+        {
+          id: nextSibling.id,
+          name: nextSibling.name,
+          value: nextSibling.value,
+          selfValue: nextSibling.selfValue,
+          depth: nextSibling.depth,
+          x: nextSibling.x,
+          width: nextSibling.width,
+          selfWidth: nextSibling.selfWidth,
+          functionName: nextSibling.name,
+          fileName: nextSibling.fileName,
+          lineNumber: nextSibling.lineNumber,
+          totalValue: nextSibling.value
+        },
+        stackTrace,
+        nextSibling.children
+      )
+    }
+
+    rendererRef.current.render()
+  }
+
+  // Keyboard navigation: Navigate to previous sibling frame
+  const selectPreviousSibling = () => {
+    if (!selectedFrame || !rendererRef.current) {return}
+
+    const currentFrame = findFrameById(selectedFrame)
+    if (!currentFrame) {return}
+
+    // Get siblings from parent
+    const parent = currentFrame.parent
+    if (!parent) {return}
+
+    const siblings = parent.children
+    const currentIndex = siblings.findIndex(f => f.id === selectedFrame)
+
+    if (currentIndex <= 0) {return}
+
+    const prevSibling = siblings[currentIndex - 1]
+
+    setSelectedFrame(prevSibling.id)
+
+    // Zoom to sibling frame
+    const frames = (rendererRef.current as any).frames
+    const siblingFrameData = frames.find((f: any) => f.node.id === prevSibling.id)
+    if (siblingFrameData) {
+      const logicalWidth = (rendererRef.current as any).logicalWidth
+      const x1 = siblingFrameData.x1 * logicalWidth
+      const x2 = siblingFrameData.x2 * logicalWidth
+
+      const camera = (rendererRef.current as any).camera
+      camera.zoomToFrame(x1, x2)
+    }
+
+    if (onFrameClick) {
+      // Build stack trace and children for callback
+      const stackTrace: FlameNode[] = []
+      let current: FlameNode | undefined = prevSibling
+      while (current) {
+        stackTrace.unshift(current)
+        current = current.parent
+      }
+      onFrameClick(
+        {
+          id: prevSibling.id,
+          name: prevSibling.name,
+          value: prevSibling.value,
+          selfValue: prevSibling.selfValue,
+          depth: prevSibling.depth,
+          x: prevSibling.x,
+          width: prevSibling.width,
+          selfWidth: prevSibling.selfWidth,
+          functionName: prevSibling.name,
+          fileName: prevSibling.fileName,
+          lineNumber: prevSibling.lineNumber,
+          totalValue: prevSibling.value
+        },
+        stackTrace,
+        prevSibling.children
+      )
+    }
+
+    rendererRef.current.render()
+  }
+
+  // Keyboard navigation: Reset zoom to show full graph
+  const resetZoom = () => {
+    if (!rendererRef.current) {return}
+
+    const camera = (rendererRef.current as any).camera
+    camera.resetZoom()
+
+    setSelectedFrame(null)
+
+    if (onFrameClick) {
+      onFrameClick(null as any, [], [])
+    }
+
+    rendererRef.current.render()
+
+    // Update pannable state after zoom reset
+    setTimeout(() => {
+      setCanPan(rendererRef.current!.canPan())
+    }, 100)
+  }
+
+  // Keyboard event handler
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLCanvasElement>) => {
+    if (!rendererRef.current) {return}
+
+    // Don't handle keyboard events if we're typing in an input or if modifiers are pressed
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return
+    }
+
+    switch (event.key) {
+      case 'ArrowUp':
+        event.preventDefault()
+        selectParentFrame()
+        break
+      case 'ArrowDown':
+        event.preventDefault()
+        selectFirstChild()
+        break
+      case 'ArrowRight':
+        event.preventDefault()
+        selectNextSibling()
+        break
+      case 'ArrowLeft':
+        event.preventDefault()
+        selectPreviousSibling()
+        break
+      case 'Escape':
+      case 'Home':
+        event.preventDefault()
+        resetZoom()
+        break
+    }
+  }
+
   const handleMouseLeave = () => {
     setHoveredFrame(null)
     setHoveredFrameData(null)
@@ -518,13 +831,18 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
         onWheel={handleWheel}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="img"
+        aria-label="Flame graph visualization. Use arrow keys to navigate: Up for parent frame, Down for first child, Left/Right for siblings, Escape or Home to reset zoom."
         style={{
           width: '100%',
           height: '100%',
           display: 'block',
           cursor: isDragging ? 'grabbing' : (canPan ? 'grab' : 'pointer'),
           touchAction: zoomOnScroll ? 'none' : 'auto', // Prevent touch scrolling
-          overscrollBehavior: zoomOnScroll ? 'none' : 'auto' // Prevent overscroll
+          overscrollBehavior: zoomOnScroll ? 'none' : 'auto', // Prevent overscroll
+          outline: 'none' // Remove default focus outline, flamegraph provides visual feedback via selection
         }}
       />
 
