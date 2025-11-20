@@ -82,7 +82,7 @@ export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
       }} />
       <div style={{ marginBottom: '6px' }}>
         <span style={{ color: '#666', fontSize: '11px' }}>{profileMetadata ? getMetricLabel(profileMetadata) : 'Samples'}:</span>
-        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{formatSampleCount(frameData.value)}</span>
+        <span style={{ marginLeft: '8px', fontWeight: '500' }}>{formatSampleCount(frameData.sampleCount)}</span>
       </div>
       <div style={{ marginBottom: '6px' }}>
         <span style={{ color: '#666', fontSize: '11px' }}>{profileMetadata ? getTotalValueLabel(profileMetadata) : 'Total Time'}:</span>

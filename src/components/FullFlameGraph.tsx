@@ -66,6 +66,9 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
         fileName: f.frame.fileName,
         lineNumber: f.frame.lineNumber,
         functionName: f.frame.functionName,
+        sampleCount: f.frame.sampleCount,
+        selfValue: f.frame.selfValue,
+        selfWidth: f.frame.selfWidth,
       })
     })
     return map

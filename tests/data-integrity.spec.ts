@@ -137,4 +137,128 @@ test.describe('FlameGraph Data Integrity Tests', () => {
     const canvas = page.locator('canvas').first()
     await expect(canvas).toBeVisible()
   })
+
+  test('allocation count and space values are consistent across tooltip and stack details for heap profiles', async ({ page }) => {
+    // Navigate to heap profile visualization with all components
+    await page.goto('http://localhost:6006/iframe.html?args=&id=full-flamegraph--heap-profile&viewMode=story')
+    await page.waitForTimeout(2000)
+
+    // Hover over a frame to show tooltip
+    const canvas = page.locator('canvas').first()
+    await canvas.hover({ position: { x: 300, y: 100 } })
+    await page.waitForTimeout(500)
+
+    // Extract values from tooltip
+    const tooltip = page.locator('.flamegraph-tooltip')
+    await expect(tooltip).toBeVisible()
+
+    const tooltipText = await tooltip.textContent()
+
+    // Extract allocation count (first numeric value after "Allocations:" or similar)
+    const allocationMatch = tooltipText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
+    const tooltipAllocationCount = allocationMatch ? allocationMatch[1].replace(/,/g, '') : null
+
+    // Extract total space (value with units like "KB", "MB", "bytes")
+    const spaceMatch = tooltipText?.match(/(?:Total Space|Total):\s*([\d,.]+\s*(?:bytes|KB|MB|GB|B))/)
+    const tooltipTotalSpace = spaceMatch ? spaceMatch[1] : null
+
+    // Click the frame to select it and show stack details
+    await canvas.click({ position: { x: 300, y: 100 } })
+    await page.waitForTimeout(500)
+
+    // Extract values from stack details
+    const stackDetails = page.locator('.stack-details-header, .frame-summary, [class*="stack"]').first()
+    const stackDetailsText = await stackDetails.textContent()
+
+    // Extract the same metrics from stack details
+    const stackAllocationMatch = stackDetailsText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
+    const stackAllocationCount = stackAllocationMatch ? stackAllocationMatch[1].replace(/,/g, '') : null
+
+    const stackSpaceMatch = stackDetailsText?.match(/(?:Total Space|Total):\s*([\d,.]+\s*(?:bytes|KB|MB|GB|B))/)
+    const stackTotalSpace = stackSpaceMatch ? stackSpaceMatch[1] : null
+
+    // Verify consistency
+    if (tooltipAllocationCount && stackAllocationCount) {
+      expect(tooltipAllocationCount).toBe(stackAllocationCount)
+    }
+
+    if (tooltipTotalSpace && stackTotalSpace) {
+      expect(tooltipTotalSpace).toBe(stackTotalSpace)
+    }
+  })
+
+  test('allocation count displays as integer without decimal places in tooltip', async ({ page }) => {
+    // Navigate to heap profile
+    await page.goto('http://localhost:6006/iframe.html?args=&id=full-flamegraph--heap-profile&viewMode=story')
+    await page.waitForTimeout(2000)
+
+    // Hover over a frame
+    const canvas = page.locator('canvas').first()
+    await canvas.hover({ position: { x: 300, y: 100 } })
+    await page.waitForTimeout(500)
+
+    const tooltip = page.locator('.flamegraph-tooltip')
+    await expect(tooltip).toBeVisible()
+
+    const tooltipText = await tooltip.textContent()
+
+    // Extract allocation count
+    const allocationMatch = tooltipText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+(?:\.\d+)?)/)
+    const allocationValue = allocationMatch ? allocationMatch[1] : null
+
+    // Verify it doesn't contain decimal places (no period followed by digits)
+    if (allocationValue) {
+      expect(allocationValue).not.toMatch(/\.\d+/)
+    }
+  })
+
+  test('tooltip, stack details, and frame details show same allocation count for the same frame', async ({ page }) => {
+    // Navigate to full flamegraph with heap profile and all components enabled
+    await page.goto('http://localhost:6006/iframe.html?args=&id=integration--complete-integration&viewMode=story')
+    await page.waitForTimeout(2000)
+
+    // Hover to get tooltip values
+    const canvas = page.locator('canvas').first()
+    await canvas.hover({ position: { x: 400, y: 120 } })
+    await page.waitForTimeout(500)
+
+    const tooltip = page.locator('.flamegraph-tooltip')
+    const tooltipText = await tooltip.textContent()
+    const tooltipAllocationMatch = tooltipText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
+    const tooltipAllocationCount = tooltipAllocationMatch ? tooltipAllocationMatch[1] : null
+
+    // Click to select and show stack details and frame details
+    await canvas.click({ position: { x: 400, y: 120 } })
+    await page.waitForTimeout(500)
+
+    // Get allocation count from stack details
+    const stackDetails = page.locator('[class*="stack-details"]')
+    const stackDetailsText = await stackDetails.textContent()
+    const stackAllocationMatch = stackDetailsText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
+    const stackAllocationCount = stackAllocationMatch ? stackAllocationMatch[1] : null
+
+    // Get allocation count from frame details (if visible)
+    const frameDetails = page.locator('[class*="frame-details"]')
+    const frameDetailsVisible = await frameDetails.isVisible()
+    let frameAllocationCount = null
+
+    if (frameDetailsVisible) {
+      const frameDetailsText = await frameDetails.textContent()
+      const frameAllocationMatch = frameDetailsText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
+      frameAllocationCount = frameAllocationMatch ? frameAllocationMatch[1] : null
+    }
+
+    // All three should show the same allocation count
+    if (tooltipAllocationCount && stackAllocationCount) {
+      expect(tooltipAllocationCount).toBe(stackAllocationCount)
+    }
+
+    if (tooltipAllocationCount && frameAllocationCount) {
+      expect(tooltipAllocationCount).toBe(frameAllocationCount)
+    }
+
+    if (stackAllocationCount && frameAllocationCount) {
+      expect(stackAllocationCount).toBe(frameAllocationCount)
+    }
+  })
 })

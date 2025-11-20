@@ -32,6 +32,7 @@ export interface FrameData {
   fileName?: string
   lineNumber?: number
   totalValue: number
+  sampleCount?: number
 }
 
 interface PprofSample {
