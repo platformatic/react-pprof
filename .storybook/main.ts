@@ -35,6 +35,10 @@ const config: StorybookConfig = {
     config.resolve = {
       ...config.resolve,
       extensions: [...(config.resolve?.extensions || []), '.ts', '.tsx'],
+      extensionAlias: {
+        '.js': ['.js', '.ts', '.tsx'],
+        '.jsx': ['.jsx', '.tsx'],
+      },
     }
 
     return config
