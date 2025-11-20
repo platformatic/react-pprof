@@ -140,8 +140,10 @@ test.describe('FlameGraph Data Integrity Tests', () => {
 
   test('allocation count and space values are consistent across tooltip and stack details for heap profiles', async ({ page }) => {
     // Navigate to heap profile visualization with all components
-    await page.goto('http://localhost:6006/iframe.html?args=&id=full-flamegraph--heap-profile&viewMode=story')
-    await page.waitForTimeout(2000)
+    await utils.navigateToTest({
+      heapProfile: true,
+      stackDetails: true
+    })
 
     // Hover over a frame to show tooltip
     const canvas = page.locator('canvas').first()
@@ -166,9 +168,15 @@ test.describe('FlameGraph Data Integrity Tests', () => {
     await canvas.click({ position: { x: 300, y: 100 } })
     await page.waitForTimeout(500)
 
-    // Extract values from stack details
-    const stackDetails = page.locator('.stack-details-header, .frame-summary, [class*="stack"]').first()
-    const stackDetailsText = await stackDetails.textContent()
+    // Extract values from the selected frame's summary in stack details (not from stack trace)
+    // Look for the frame info that appears right after "Selected frame:" in the header
+    const stackDetails = page.locator('.stack-details-container').first()
+    await expect(stackDetails).toBeVisible()
+
+    // The selected frame details are shown in the header section
+    // We need to find the last occurrence of "Allocations:" which is in the selected frame's stack trace entry
+    const selectedFrameInTrace = page.locator('.stack-frame').last()
+    const stackDetailsText = await selectedFrameInTrace.textContent()
 
     // Extract the same metrics from stack details
     const stackAllocationMatch = stackDetailsText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
@@ -189,8 +197,9 @@ test.describe('FlameGraph Data Integrity Tests', () => {
 
   test('allocation count displays as integer without decimal places in tooltip', async ({ page }) => {
     // Navigate to heap profile
-    await page.goto('http://localhost:6006/iframe.html?args=&id=full-flamegraph--heap-profile&viewMode=story')
-    await page.waitForTimeout(2000)
+    await utils.navigateToTest({
+      heapProfile: true
+    })
 
     // Hover over a frame
     const canvas = page.locator('canvas').first()
@@ -214,8 +223,11 @@ test.describe('FlameGraph Data Integrity Tests', () => {
 
   test('tooltip, stack details, and frame details show same allocation count for the same frame', async ({ page }) => {
     // Navigate to full flamegraph with heap profile and all components enabled
-    await page.goto('http://localhost:6006/iframe.html?args=&id=integration--complete-integration&viewMode=story')
-    await page.waitForTimeout(2000)
+    await utils.navigateToTest({
+      heapProfile: true,
+      stackDetails: true,
+      frameDetails: true
+    })
 
     // Hover to get tooltip values
     const canvas = page.locator('canvas').first()
@@ -231,19 +243,19 @@ test.describe('FlameGraph Data Integrity Tests', () => {
     await canvas.click({ position: { x: 400, y: 120 } })
     await page.waitForTimeout(500)
 
-    // Get allocation count from stack details
-    const stackDetails = page.locator('[class*="stack-details"]')
-    const stackDetailsText = await stackDetails.textContent()
+    // Get allocation count from stack details (last item in stack trace is the selected frame)
+    const selectedFrameInTrace = page.locator('.stack-frame').last()
+    const stackDetailsText = await selectedFrameInTrace.textContent()
     const stackAllocationMatch = stackDetailsText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
     const stackAllocationCount = stackAllocationMatch ? stackAllocationMatch[1] : null
 
     // Get allocation count from frame details (if visible)
-    const frameDetails = page.locator('[class*="frame-details"]')
-    const frameDetailsVisible = await frameDetails.isVisible()
+    const frameDetailsContainer = page.locator('[data-testid="frame-details-container"]')
+    const frameDetailsVisible = await frameDetailsContainer.isVisible()
     let frameAllocationCount = null
 
     if (frameDetailsVisible) {
-      const frameDetailsText = await frameDetails.textContent()
+      const frameDetailsText = await frameDetailsContainer.textContent()
       const frameAllocationMatch = frameDetailsText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
       frameAllocationCount = frameAllocationMatch ? frameAllocationMatch[1] : null
     }
