@@ -235,6 +235,7 @@ test.describe('FlameGraph Data Integrity Tests', () => {
     await page.waitForTimeout(500)
 
     const tooltip = page.locator('.flamegraph-tooltip')
+    await expect(tooltip).toBeVisible()
     const tooltipText = await tooltip.textContent()
     const tooltipAllocationMatch = tooltipText?.match(/(?:Allocations|Objects|Samples):\s*([\d,]+)/)
     const tooltipAllocationCount = tooltipAllocationMatch ? tooltipAllocationMatch[1] : null
