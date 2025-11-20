@@ -425,6 +425,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
                 height="100%"
                 allFrames={allFramesFlat}
                 profileMetadata={profileMetadata}
+                onFrameClick={handleFrameSelection}
               />
             </div>
           </div>

@@ -292,6 +292,7 @@ const TestApp: React.FC = () => {
               primaryColor={config.primaryColor}
               secondaryColor={config.secondaryColor}
               profileMetadata={profileMetadata}
+              onFrameClick={handleHotFrameSelect}
             />
           </div>
         )}
