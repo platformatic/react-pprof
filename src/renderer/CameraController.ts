@@ -172,6 +172,27 @@ export class CameraController {
   }
 
   /**
+   * Scroll the camera vertically (for mouse wheel scrolling)
+   * Only works in fixed height mode when content is scrollable
+   */
+  scroll(deltaY: number): void {
+    // Only allow scrolling in fixed height mode when content is scrollable
+    if (!this.#isFixedHeight || !this.isScrollable()) {
+      return
+    }
+
+    // Calculate new vertical position
+    const newY = this.#camera.y - deltaY
+
+    // Apply bounds constraints
+    const constrainedPosition = this.#calculateBoundedPosition(this.#camera.x, newY)
+
+    // Update camera position
+    this.#camera.y = constrainedPosition.y
+    this.#camera.targetY = this.#camera.y
+  }
+
+  /**
    * Update camera animation (call each frame)
    */
   update(): boolean {

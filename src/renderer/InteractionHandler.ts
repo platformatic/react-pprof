@@ -116,6 +116,13 @@ export class InteractionHandler {
   }
 
   /**
+   * Handle scroll wheel event for vertical scrolling
+   */
+  handleScroll(deltaY: number): void {
+    this.#cameraController.scroll(deltaY)
+  }
+
+  /**
    * Handle click event
    */
   handleClick(x: number, y: number): { frame: FrameData; stackTrace: FlameNode[]; children: FlameNode[] } | null {

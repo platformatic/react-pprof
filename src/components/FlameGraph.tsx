@@ -448,6 +448,21 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
     setIsDragging(false)
   }
 
+  const handleWheel = (event: React.WheelEvent<HTMLCanvasElement>) => {
+    if (!rendererRef.current) {return}
+
+    // If zoomOnScroll is enabled, the native wheel handler in renderer will handle it
+    if (zoomOnScroll) {
+      return
+    }
+
+    // Otherwise, handle vertical scrolling (only works in fixed height mode when content is scrollable)
+    if (rendererRef.current.isScrollable()) {
+      event.preventDefault()
+      rendererRef.current.handleScroll(event.deltaY)
+    }
+  }
+
   // Determine if we should use explicit height or auto-height mode
   const useExplicitHeight = typeof height === 'number'
 
@@ -502,6 +517,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onWheel={handleWheel}
         style={{
           width: '100%',
           height: '100%',
