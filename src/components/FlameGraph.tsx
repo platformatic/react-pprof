@@ -21,6 +21,7 @@ export interface FlameGraphProps {
   scrollZoomSpeed?: number
   scrollZoomInverted?: boolean
   selectedFrameId?: string | null
+  showAppCodeOnly?: boolean
   onFrameClick?: (frame: FrameData | null, stackTrace: FlameNode[], children: FlameNode[]) => void
   onZoomChange?: (zoomLevel: number) => void
   onAnimationComplete?: () => void
@@ -44,6 +45,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
   scrollZoomSpeed = 0.05,
   scrollZoomInverted = false,
   selectedFrameId,
+  showAppCodeOnly = false,
   onFrameClick,
   onZoomChange: _onZoomChange,
   onAnimationComplete,
@@ -108,7 +110,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
         }
 
         // Set the data and render
-        const requiredHeight = renderer.setData(profile)
+        const requiredHeight = renderer.setData(profile, showAppCodeOnly)
 
         // Get the required height from renderer (only for auto-height mode)
         const useExplicitHeight = typeof height === 'number'
@@ -143,7 +145,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
     }
 
     initializeRenderer()
-  }, [profile, primaryColor, secondaryColor, backgroundColor, textColor, fontFamily])
+  }, [profile, primaryColor, secondaryColor, backgroundColor, textColor, fontFamily, showAppCodeOnly])
 
   // Update colors when they change (without recreating the renderer)
   useEffect(() => {

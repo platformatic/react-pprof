@@ -83,8 +83,8 @@ export class FlameGraphRenderer {
   /**
    * Set the profile data and return the required height
    */
-  setData(profile: Profile): number {
-    this.#dataProcessor.processProfile(profile)
+  setData(profile: Profile, showAppCodeOnly: boolean = false): number {
+    this.#dataProcessor.processProfile(profile, showAppCodeOnly)
 
     // Generate frames for rendering
     this.#frames = this.#dataProcessor.generateFrames()
