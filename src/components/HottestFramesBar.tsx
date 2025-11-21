@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Profile } from '../parser'
-import { FrameData, FlameNode } from '../renderer/index.js'
+import { FrameData, FlameNode, detectProfileMetadata } from '../renderer/index.js'
 
 export interface HottestFramesBarProps {
   profile: Profile
@@ -39,6 +39,10 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
   // Process profile to get frames sorted by self-time
   const sortedFrames = useMemo(() => {
     const frameMap = new Map<string, FrameWithSelfTime>()
+
+    // Detect profile metadata to get the correct sample type index
+    const metadata = detectProfileMetadata(profile)
+    const valueIndex = metadata.sampleTypeIndex
 
     // We need to build the same flame graph structure as the FlameGraph component
     // to ensure frame IDs match
@@ -100,7 +104,7 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
 
       // Process samples
       for (const sample of profile.sample || []) {
-        const value = sample.value?.[0] || 0
+        const value = sample.value?.[valueIndex] || 0
         const numericValue = typeof value === 'bigint' ? Number(value) : value
         totalValue += numericValue
 
@@ -189,8 +193,9 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
           currentParent.children.push(node)
         }
 
-        // Accumulate sample value
+        // Accumulate sample value and count
         node.value += sample.value
+        node.sampleCount += 1
 
         currentParent = node
         currentPath = nodeId
@@ -230,6 +235,7 @@ export const HottestFramesBar: React.FC<HottestFramesBarProps> = ({
             fileName: node.fileName,
             lineNumber: node.lineNumber,
             totalValue: node.value,
+            sampleCount: node.sampleCount,
           },
           selfTime: selfTime,
           nodeId: node.id

@@ -1,5 +1,5 @@
 import React from 'react'
-import { FrameData, ProfileMetadata, formatValue, getSelfValueLabel, getTotalValueLabel } from '../renderer/index.js'
+import { FrameData, ProfileMetadata, formatValue, formatSampleCount, getMetricLabel, getSelfValueLabel, getTotalValueLabel } from '../renderer/index.js'
 
 export interface FrameDetailsProps {
   frame: FrameData | null
@@ -28,6 +28,7 @@ export const FrameDetails: React.FC<FrameDetailsProps> = ({
 
   const selfLabel = profileMetadata ? getSelfValueLabel(profileMetadata).toLowerCase() : 'self'
   const totalLabel = profileMetadata ? getTotalValueLabel(profileMetadata).toLowerCase() : 'total'
+  const metricLabel = profileMetadata ? getMetricLabel(profileMetadata).toLowerCase() : 'samples'
 
   const selfValueFormatted = profileMetadata ? formatValue(displaySelfTime, profileMetadata) : displaySelfTime.toFixed(2)
   const totalValueFormatted = profileMetadata ? formatValue(frame.totalValue, profileMetadata) : frame.totalValue.toFixed(2)
@@ -48,6 +49,9 @@ export const FrameDetails: React.FC<FrameDetailsProps> = ({
         </span>
       )}
       <span style={{ marginLeft: '12px' }}>
+        {frame.sampleCount !== undefined && (
+          <>{metricLabel}: {formatSampleCount(frame.sampleCount)}, </>
+        )}
         {selfLabel}: {selfValueFormatted}, {totalLabel}: {totalValueFormatted}
       </span>
     </div>

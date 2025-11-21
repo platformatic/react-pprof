@@ -153,7 +153,7 @@ const FrameMetrics: React.FC<FrameMetricsProps> = ({ frame, selfTimePercentage, 
     {selfTimePercentage !== undefined && (
       <>
         {' • '}
-        <span>{profileMetadata ? getSelfValueLabel(profileMetadata) : 'Self Time'}: {selfTimePercentage.toFixed(2)}%</span>
+        <span>{profileMetadata ? getSelfValueLabel(profileMetadata) : 'Self Time'}: {profileMetadata ? formatValue(frame.selfValue || 0, profileMetadata) : `${selfTimePercentage.toFixed(2)}%`} ({selfTimePercentage.toFixed(2)}%)</span>
       </>
     )}
   </div>

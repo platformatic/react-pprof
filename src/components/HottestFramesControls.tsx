@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react'
 import { Profile } from '../parser.js'
-import { FrameData, FlameNode } from '../renderer/index.js'
+import { FrameData, FlameNode, detectProfileMetadata } from '../renderer/index.js'
 import { FrameWithSelfTime } from './HottestFramesBar.js'
 
 export interface HottestFramesControlsProps {
@@ -27,7 +27,11 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
     // This is a simplified version - in production you'd want to share this logic
     // with HottestFramesBar through a custom hook or utility function
     const frameMap = new Map<string, FrameWithSelfTime>()
-    
+
+    // Detect profile metadata to get the correct sample type index
+    const metadata = detectProfileMetadata(profile)
+    const valueIndex = metadata.sampleTypeIndex
+
     // Build flame graph structure from profile
     const buildFlameGraph = (profile: Profile) => {
       const samples: Array<{stack: string[], value: number, locations?: any[]}> = []
@@ -74,7 +78,7 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
       }
 
       for (const sample of profile.sample || []) {
-        const value = sample.value?.[0] || 0
+        const value = sample.value?.[valueIndex] || 0
         const numericValue = typeof value === 'bigint' ? Number(value) : value
         totalValue += numericValue
 
@@ -153,6 +157,7 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
           currentParent.children.push(node)
         }
         node.value += sample.value
+        node.sampleCount += 1
         currentParent = node
         currentPath = nodeId
       }
@@ -189,6 +194,7 @@ export const HottestFramesControls: React.FC<HottestFramesControlsProps> = ({
             fileName: node.fileName,
             lineNumber: node.lineNumber,
             totalValue: node.value,
+            sampleCount: node.sampleCount,
           },
           selfTime: selfTime,
           nodeId: node.id
