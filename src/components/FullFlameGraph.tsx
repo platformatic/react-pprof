@@ -3,6 +3,7 @@ import { Profile } from '../parser.js'
 import { FrameData, FlameNode, detectProfileMetadata, FlameGraphRenderer } from '../renderer/index.js'
 import { HottestFramesBar, type FrameWithSelfTime } from './HottestFramesBar.js'
 import { HottestFramesControls } from './HottestFramesControls.js'
+import { FilterControls } from './FilterControls.js'
 import { FrameDetails } from './FrameDetails.js'
 import { FlameGraph } from './FlameGraph.js'
 import { StackDetails } from './StackDetails.js'
@@ -41,6 +42,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   const [frames, setFrames] = useState<FrameWithSelfTime[]>([])
   const [stackTrace, setStackTrace] = useState<any[]>([])
   const [frameChildren, setFrameChildren] = useState<any[]>([])
+  const [showAppCodeOnly, setShowAppCodeOnly] = useState(false)
 
   // Reference to FlameGraph's renderer
   const flameGraphRef = useRef<{ rendererRef: React.RefObject<FlameGraphRenderer> }>(null)
@@ -330,13 +332,19 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           alignItems: 'center',
           marginBottom: '10px',
           minHeight: '40px',
+          gap: '16px',
         }}>
           {showControls && (
-            <div style={{ flex: '0 0 auto' }}>
+            <div style={{ flex: '0 0 auto', display: 'flex', gap: '16px', alignItems: 'center' }}>
               <HottestFramesControls
                 profile={profile}
                 selectedFrame={selectedFrame}
                 onFrameSelect={handleFrameSelection}
+                textColor={textColor}
+              />
+              <FilterControls
+                showAppCodeOnly={showAppCodeOnly}
+                onToggle={setShowAppCodeOnly}
                 textColor={textColor}
               />
             </div>
@@ -367,6 +375,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           textColor={textColor}
           fontFamily={fontFamily}
           selectedFrameId={selectedFrameId}
+          showAppCodeOnly={showAppCodeOnly}
           onFrameClick={handleFrameSelection}
         />
 

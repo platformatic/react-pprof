@@ -1,5 +1,6 @@
 import { Profile } from 'pprof-format'
 import { ProfileMetadata, detectProfileMetadata } from './ProfileMetadata.js'
+import { filterAndRecalculate } from '../utils/frameFilters.js'
 
 // FlameNode and FrameData types belong here since this class owns them
 export interface FlameNode {
@@ -57,10 +58,14 @@ export class FlameDataProcessor {
   /**
    * Convert Profile to FlameNode structure
    */
-  processProfile(profile: Profile): FlameNode {
+  processProfile(profile: Profile, showAppCodeOnly: boolean = false): FlameNode {
     // Detect profile metadata first
     this.#profileMetadata = detectProfileMetadata(profile)
-    this.#data = this.#profileToFlameGraph(profile)
+    const rawData = this.#profileToFlameGraph(profile)
+
+    // Apply filtering if requested
+    this.#data = showAppCodeOnly ? filterAndRecalculate(rawData, showAppCodeOnly) : rawData
+
     return this.#data
   }
 
