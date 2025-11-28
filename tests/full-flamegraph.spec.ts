@@ -259,10 +259,12 @@ test.describe('FullFlameGraph Component', () => {
       await utils.navigateToTest({ fullFlameGraph: true })
 
       const container = page.locator('[data-testid="full-flamegraph-container"]')
-      const canvas = container.locator('canvas').first()
 
-      // Click to select a frame
-      await canvas.click({ position: { x: 200, y: 100 } })
+      const canvas = container.locator('canvas')
+
+      // Click near the top of the canvas where the wide root frames are rendered
+      // The flamegraph renders with root at the top, so y: 30 should hit a visible frame
+      await canvas.click({ position: { x: 400, y: 30 } })
       await page.waitForTimeout(1000)
 
       // Ensure checkbox is visible in screenshot
