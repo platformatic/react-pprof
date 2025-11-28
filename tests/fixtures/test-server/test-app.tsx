@@ -62,7 +62,7 @@ const TestApp: React.FC = () => {
   const showHottestControls = params.get('hottestControls') === 'true'
   const showFrameDetails = params.get('frameDetails') === 'true'
   const showFullFlameGraph = params.get('fullFlameGraph') === 'true'
-  const showFlameGraph = params.get('flamegraph') !== 'false' // Default to true
+  const showFlameGraph = params.get('flamegraph') !== 'false' && !showFullFlameGraph // Default to true, but not if showing full
   const hottestHeight = params.get('hottestHeight') ? parseInt(params.get('hottestHeight')!) : 10
   const prePopulateStackDetails = params.get('prePopulateStackDetails') === 'true'
   const useHeapProfile = params.get('heapProfile') === 'true'

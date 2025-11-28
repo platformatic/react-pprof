@@ -178,10 +178,16 @@ test.describe('FullFlameGraph Component', () => {
 
       const container = page.locator('[data-testid="full-flamegraph-container"]')
       await expect(container).toBeVisible()
-      
+
       // Visual check
       await page.waitForTimeout(1000)
-      await expect(page).toHaveScreenshot('full-flamegraph-blue-theme.png')
+
+      // Ensure checkbox is visible in screenshot
+      const checkbox = page.locator('text=Show App Code Only')
+      await checkbox.scrollIntoViewIfNeeded()
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('full-flamegraph-blue-theme.png', { fullPage: true })
     })
 
     test('passes fontFamily to child components', async ({ page }) => {
@@ -205,12 +211,47 @@ test.describe('FullFlameGraph Component', () => {
   })
 
   test.describe('Visual Regression', () => {
+    test('shows FilterControls checkbox', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ fullFlameGraph: true })
+
+      await page.waitForTimeout(1000)
+
+      // Check the viewport size
+      const viewportSize = page.viewportSize()
+      console.log('Viewport:', viewportSize)
+
+      // Get the bounds of the checkbox
+      const checkboxLabel = page.locator('text=Show App Code Only')
+      const labelBox = await checkboxLabel.boundingBox()
+      console.log('Checkbox label bounds:', labelBox)
+
+      const checkbox = page.locator('input[type="checkbox"]').first()
+      const checkboxBox = await checkbox.boundingBox()
+      console.log('Checkbox input bounds:', checkboxBox)
+
+      // Verify they're actually visible
+      await expect(checkboxLabel).toBeVisible()
+      await expect(checkbox).toBeVisible()
+
+      // Check if they're within viewport
+      if (labelBox && viewportSize) {
+        console.log('Label is within viewport width?', labelBox.x + labelBox.width <= viewportSize.width)
+      }
+    })
+
     test('maintains visual consistency', async ({ page }) => {
       const utils = new FlameGraphTestUtils(page)
       await utils.navigateToTest({ fullFlameGraph: true })
 
       await page.waitForTimeout(1500)
-      await expect(page).toHaveScreenshot('full-flamegraph-default.png')
+
+      // Scroll checkbox into view if needed
+      const checkbox = page.locator('text=Show App Code Only')
+      await checkbox.scrollIntoViewIfNeeded()
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('full-flamegraph-default.png', { fullPage: true })
     })
 
     test('selected state visual', async ({ page }) => {
@@ -224,7 +265,12 @@ test.describe('FullFlameGraph Component', () => {
       await canvas.click({ position: { x: 200, y: 100 } })
       await page.waitForTimeout(1000)
 
-      await expect(page).toHaveScreenshot('full-flamegraph-selected.png')
+      // Ensure checkbox is visible in screenshot
+      const checkbox = page.locator('text=Show App Code Only')
+      await checkbox.scrollIntoViewIfNeeded()
+      await page.waitForTimeout(500)
+
+      await expect(page).toHaveScreenshot('full-flamegraph-selected.png', { fullPage: true })
     })
   })
 

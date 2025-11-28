@@ -44,34 +44,28 @@ function FlameGraphViewer() {
 
 ### Integrated with Full Flame Graph
 
+The `FullFlameGraph` component includes `FilterControls` internally and manages its own state. You can optionally configure the default (initial) filter state:
+
 ```tsx
-import React, { useState } from 'react'
-import { FilterControls } from './FilterControls'
 import { FullFlameGraph } from './FullFlameGraph'
 
+// Default behavior - filter starts unchecked (shows all code)
 function ProfileAnalyzer({ profile }) {
-  const [showAppCodeOnly, setShowAppCodeOnly] = useState(false)
+  return <FullFlameGraph profile={profile} />
+}
 
+// Configure to start with filter enabled (shows app code only)
+function FilteredProfileAnalyzer({ profile }) {
   return (
-    <div>
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <FilterControls
-          showAppCodeOnly={showAppCodeOnly}
-          onToggle={setShowAppCodeOnly}
-          textColor="#ffffff"
-        />
-        <span style={{ color: '#888' }}>
-          {showAppCodeOnly ? 'Showing application code only' : 'Showing all code'}
-        </span>
-      </div>
-      <FullFlameGraph
-        profile={profile}
-        showAppCodeOnly={showAppCodeOnly}
-      />
-    </div>
+    <FullFlameGraph
+      profile={profile}
+      showAppCodeOnly={true}
+    />
   )
 }
 ```
+
+Note: The `showAppCodeOnly` prop on `FullFlameGraph` **only sets the initial state**. After rendering, users can toggle the filter using the checkbox, and the component manages its own internal state.
 
 ### With Custom Styling
 
@@ -219,11 +213,25 @@ const checkboxStyle = {
 
 ## Default State
 
-By design, the filter **always defaults to OFF** (showing all code):
+By design, the filter **defaults to OFF** (showing all code) unless configured otherwise:
 - Gives users complete visibility by default
 - Requires explicit action to enable filtering
 - Prevents confusion about missing frames
 - Follows principle of showing all data unless requested otherwise
+
+### Configuring the Default State in FullFlameGraph
+
+When using `FullFlameGraph`, you can configure the initial filter state via the `showAppCodeOnly` prop:
+
+```tsx
+// Default: filter starts OFF (shows all code)
+<FullFlameGraph profile={profile} />
+
+// Configure: filter starts ON (shows app code only)
+<FullFlameGraph profile={profile} showAppCodeOnly={true} />
+```
+
+**Important**: This prop **only sets the initial state**. Once the component renders, the filter state is managed internally. Users can toggle it on/off using the checkbox, and those changes persist for the lifetime of the component. The prop does not continuously control the filter state.
 
 ## Related Components
 
