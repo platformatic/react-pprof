@@ -52,6 +52,7 @@
     "@playwright/test": "^1.56.1",
     "@storybook/addon-docs": "^9.0.17",
     "@storybook/addon-onboarding": "^9.0.17",
+    "@storybook/react-webpack5": "^9.0.17",
     "@types/gl-matrix": "^2.4.5",
     "@types/node": "^24.0.15",
     "@types/react": "^19.1.8",
@@ -72,7 +73,6 @@
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
-    "@storybook/react-webpack5": "^9.0.17",
     "gl-matrix": "^3.4.3",
     "pprof-format": "^2.2.1",
     "protobufjs": "^7.5.3",

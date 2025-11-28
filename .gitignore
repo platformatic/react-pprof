@@ -193,7 +193,6 @@ $RECYCLE.BIN/
 /.claude
 
 # Unused Lock files
-/package-lock.json
 /yarn.lock
 
 # Build/Install files
