@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-const { parseArgs } = require('node:util')
-const fs = require('node:fs')
-const path = require('node:path')
-const zlib = require('node:zlib')
+import { parseArgs } from 'node:util'
+import fs from 'node:fs'
+import path from 'node:path'
+import zlib from 'node:zlib'
+
+const __dirname = import.meta.dirname
 
 // Parse command line arguments
 const { values: args, positionals } = parseArgs({
@@ -108,34 +110,32 @@ try {
   process.exit(1)
 }
 
-// Use the embeddable function to generate the flamegraph (dynamic import for ESM)
-;(async () => {
-  try {
-    const { generateEmbeddableFlameGraph } = await import('./dist/embeddable.js')
-    const { html, script } = await generateEmbeddableFlameGraph(profileData, {
-      title,
-      filename: path.basename(pprofFile),
-      primaryColor,
-      secondaryColor,
-      height: 1000 // CLI uses full page height
-    })
+// Use the embeddable function to generate the flamegraph
+try {
+  const { generateEmbeddableFlameGraph } = await import('./dist/embeddable.js')
+  const { html, script } = await generateEmbeddableFlameGraph(profileData, {
+    title,
+    filename: path.basename(pprofFile),
+    primaryColor,
+    secondaryColor,
+    height: 1000 // CLI uses full page height
+  })
 
-    // Inject the generated HTML and script into the template
-    const finalHTML = htmlTemplate
-      .replace(/{{TITLE}}/g, title)
-      .replace(/{{FILENAME}}/g, path.basename(pprofFile))
-      .replace('{{PROFILE_DATA}}', '') // Will be set by script
-      .replace('{{PRIMARY_COLOR}}', primaryColor)
-      .replace('{{SECONDARY_COLOR}}', secondaryColor)
-      .replace('</body>', `<script>${script}</script></body>`)
+  // Inject the generated HTML and script into the template
+  const finalHTML = htmlTemplate
+    .replace(/{{TITLE}}/g, title)
+    .replace(/{{FILENAME}}/g, path.basename(pprofFile))
+    .replace('{{PROFILE_DATA}}', '') // Will be set by script
+    .replace('{{PRIMARY_COLOR}}', primaryColor)
+    .replace('{{SECONDARY_COLOR}}', secondaryColor)
+    .replace('</body>', `<script>${script}</script></body>`)
 
-    // Write the final HTML file
-    fs.writeFileSync(outputFile, finalHTML)
-    console.log(`Generated HTML output: ${outputFile}`)
-    console.log(`Profile data embedded: ${profileData.length} bytes`)
-    console.log(`Open ${outputFile} in a web browser to view the flame graph`)
-  } catch (error) {
-    console.error(`Error: ${error.message}`)
-    process.exit(1)
-  }
-})()
+  // Write the final HTML file
+  fs.writeFileSync(outputFile, finalHTML)
+  console.log(`Generated HTML output: ${outputFile}`)
+  console.log(`Profile data embedded: ${profileData.length} bytes`)
+  console.log(`Open ${outputFile} in a web browser to view the flame graph`)
+} catch (error) {
+  console.error(`Error: ${error.message}`)
+  process.exit(1)
+}
