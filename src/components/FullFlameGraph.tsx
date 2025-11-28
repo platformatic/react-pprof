@@ -21,6 +21,7 @@ export interface FullFlameGraphProps {
   showFrameDetails?: boolean
   showStackDetails?: boolean
   hottestFramesHeight?: number
+  showAppCodeOnly?: boolean
 }
 
 export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
@@ -36,13 +37,14 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   showFrameDetails = false,
   showStackDetails = true,
   hottestFramesHeight = 10,
+  showAppCodeOnly: showAppCodeOnlyProp = false,
 }) => {
   const [selectedFrame, setSelectedFrame] = useState<FrameData | null>(null)
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null)
   const [frames, setFrames] = useState<FrameWithSelfTime[]>([])
   const [stackTrace, setStackTrace] = useState<any[]>([])
   const [frameChildren, setFrameChildren] = useState<any[]>([])
-  const [showAppCodeOnly, setShowAppCodeOnly] = useState(false)
+  const [showAppCodeOnly, setShowAppCodeOnly] = useState(showAppCodeOnlyProp)
 
   // Reference to FlameGraph's renderer
   const flameGraphRef = useRef<{ rendererRef: React.RefObject<FlameGraphRenderer> }>(null)
