@@ -210,3 +210,6 @@ test-results
 
 # Ignore the cli build files
 cli-build
+
+# Generated bundle file (build-time generated)
+src/generated/
