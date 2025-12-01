@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsc",
     "build:cli": "webpack --config webpack.cli.config.cjs",
-    "prepare": "npm run build && npm run build:cli",
+    "generate-bundle": "node scripts/generate-bundle.js",
+    "prepare": "npm run build:cli && npm run generate-bundle && npm run build",
     "test": "playwright test --reporter=list",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",

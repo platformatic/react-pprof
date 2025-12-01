@@ -1,5 +1,4 @@
-import { readFile } from 'fs/promises'
-import { join } from 'path'
+import { FLAMEGRAPH_BUNDLE } from './generated/bundle.js'
 
 export interface EmbeddableFlameGraphOptions {
   title?: string
@@ -18,24 +17,14 @@ export interface EmbeddableFlameGraphBundle {
   bundle: string
 }
 
-let cachedBundle: string | null = null
-
 /**
- * Get the reusable flamegraph bundle code (cached after first call)
- * This should be included once in your page
+ * Get the flamegraph bundle code (for including once in your page)
+ * This should be included once in a <script> tag before calling renderReactPprofFlameGraph
  *
- * @returns The flamegraph bundle JavaScript code
+ * @returns Object containing the flamegraph bundle JavaScript code
  */
 export async function getFlamegraphBundle (): Promise<EmbeddableFlameGraphBundle> {
-  if (cachedBundle) {
-    return { bundle: cachedBundle }
-  }
-
-  // Read the JavaScript bundle
-  const bundlePath = join(import.meta.dirname, '..', 'cli-build', 'flamegraph.js')
-  cachedBundle = await readFile(bundlePath, 'utf8')
-
-  return { bundle: cachedBundle }
+  return { bundle: FLAMEGRAPH_BUNDLE }
 }
 
 /**
