@@ -42,6 +42,7 @@ module.exports = {
       template: './src/cli-template.html',
       filename: 'template.html',
       minify: false,
+      inject: false,
     }),
   ],
 }

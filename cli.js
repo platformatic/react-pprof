@@ -110,6 +110,15 @@ try {
   process.exit(1)
 }
 
+// Read the bundle
+let bundle
+try {
+  bundle = fs.readFileSync(bundlePath, 'utf8')
+} catch (error) {
+  console.error(`Error reading bundle: ${error.message}`)
+  process.exit(1)
+}
+
 // Use the embeddable function to generate the flamegraph
 try {
   const { generateEmbeddableFlameGraph } = await import('./dist/embeddable.js')
@@ -117,18 +126,16 @@ try {
     title,
     filename: path.basename(pprofFile),
     primaryColor,
-    secondaryColor,
-    height: 1000 // CLI uses full page height
+    secondaryColor
   })
 
-  // Inject the generated HTML and script into the template
+  // Build final HTML by replacing placeholders
+  // Use replacer functions to avoid special replacement patterns ($&, $`, etc.) in content
   const finalHTML = htmlTemplate
-    .replace(/{{TITLE}}/g, title)
-    .replace(/{{FILENAME}}/g, path.basename(pprofFile))
-    .replace('{{PROFILE_DATA}}', '') // Will be set by script
-    .replace('{{PRIMARY_COLOR}}', primaryColor)
-    .replace('{{SECONDARY_COLOR}}', secondaryColor)
-    .replace('</body>', `<script>${script}</script></body>`)
+    .replace('{{TITLE}}', () => title)
+    .replace('{{CONTENT}}', () => html)
+    .replace('{{BUNDLE}}', () => bundle)
+    .replace('{{RENDER_SCRIPT}}', () => script)
 
   // Write the final HTML file
   fs.writeFileSync(outputFile, finalHTML)
