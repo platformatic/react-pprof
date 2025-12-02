@@ -67,8 +67,12 @@ export class FrameRenderer {
     const borderInsetX = 0.5; // 0.5px border in screen space
     const borderInsetY = 0.5; // 0.5px border
 
-
-
+    // Pre-compute total values at each depth level to avoid O(n²) complexity
+    const totalValueByDepth = new Map<number, number>()
+    for (const frame of frames) {
+      const depth = frame.node.depth
+      totalValueByDepth.set(depth, (totalValueByDepth.get(depth) ?? 0) + frame.node.value)
+    }
 
     for (const frame of frames) {
       const { node, x1, x2, y1, y2 } = frame
@@ -86,7 +90,7 @@ export class FrameRenderer {
       // Calculate frame color based on relative size within its depth level
       const color = this.#calculateFrameColor(
         node,
-        frames,
+        totalValueByDepth,
         primaryColor,
         secondaryColor
       )
@@ -177,14 +181,13 @@ export class FrameRenderer {
    */
   #calculateFrameColor(
     node: FlameNode,
-    allFrames: Array<{node: FlameNode, x1: number, x2: number, y1: number, y2: number}>,
+    totalValueByDepth: Map<number, number>,
     primaryColor: [number, number, number],
     secondaryColor: [number, number, number]
   ): [number, number, number] {
-    // Calculate total value at this frame's depth level
-    const framesAtDepth = allFrames.filter(f => f.node.depth === node.depth)
-    const totalValueAtDepth = framesAtDepth.reduce((sum, f) => sum + f.node.value, 0)
-    
+    // Look up the pre-computed total value at this frame's depth level
+    const totalValueAtDepth = totalValueByDepth.get(node.depth) ?? node.value
+
     // Use the shared color computation function
     return getFrameColorBySameDepthRatio(
       primaryColor,
