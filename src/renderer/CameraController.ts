@@ -274,12 +274,12 @@ export class CameraController {
 
     // Vertical bounds
     if (this.#isFixedHeight && this.isScrollable()) {
-      // Fixed height mode with scrollable content
+      // Fixed height mode with scrollable content - allow vertical panning within bounds
       const maxY = 0; // Top of content at top of viewport
       const minY = this.#viewportHeight - this.#contentHeight; // Bottom of content at bottom of viewport
       boundedY = Math.max(minY, Math.min(maxY, desiredY))
-    } else if (!this.#isFixedHeight) {
-      // Auto-height mode: no vertical panning
+    } else {
+      // Auto-height mode OR fixed height but not scrollable - no vertical panning
       boundedY = 0
     }
 
