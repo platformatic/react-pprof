@@ -165,12 +165,25 @@ export class WebGLManager {
     if (!this.#gl) {return}
 
     const dpr = window.devicePixelRatio || 1
-    this.#canvas.width = width * dpr
-    this.#canvas.height = height * dpr
+    let bufferWidth = Math.round(width * dpr)
+    let bufferHeight = Math.round(height * dpr)
+
+    // Cap buffer size to avoid GPU/driver issues with very large framebuffers
+    // Some systems have rendering issues when buffer dimensions exceed 4096px
+    const MAX_BUFFER_DIM = 4096
+    const maxDim = Math.max(bufferWidth, bufferHeight)
+    if (maxDim > MAX_BUFFER_DIM) {
+      const scale = MAX_BUFFER_DIM / maxDim
+      bufferWidth = Math.round(bufferWidth * scale)
+      bufferHeight = Math.round(bufferHeight * scale)
+    }
+
+    this.#canvas.width = bufferWidth
+    this.#canvas.height = bufferHeight
     this.#canvas.style.width = `${width}px`
     this.#canvas.style.height = `${height}px`
 
-    this.#gl.viewport(0, 0, this.#canvas.width, this.#canvas.height)
+    this.#gl.viewport(0, 0, bufferWidth, bufferHeight)
   }
 
   /**
