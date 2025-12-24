@@ -168,9 +168,19 @@ export class WebGLManager {
     let bufferWidth = Math.round(width * dpr)
     let bufferHeight = Math.round(height * dpr)
 
-    // Cap buffer size to avoid GPU/driver issues with very large framebuffers
-    // Some systems have rendering issues when buffer dimensions exceed 4096px
-    const MAX_BUFFER_DIM = 4096
+    // Cap buffer size to avoid GPU/driver issues with very large framebuffers.
+    // On some systems (observed on macOS with Apple Silicon), content rendered at Y=0
+    // becomes invisible when the WebGL buffer exceeds a certain size.
+    //
+    // This limit (7232px) was found through binary search testing:
+    //   - 7232: works
+    //   - 7234: fails (content at Y=0 disappears)
+    //
+    // The value doesn't align with typical GPU limits (4096, 8192, 16384) or memory
+    // boundaries, suggesting a driver-specific bug rather than a documented limit.
+    // At DPR 2, this allows ~3616px CSS width before scaling kicks in.
+    // When this cap is triggered, the canvas is CSS-upscaled with minimal quality loss.
+    const MAX_BUFFER_DIM = 7232
     const maxDim = Math.max(bufferWidth, bufferHeight)
     if (maxDim > MAX_BUFFER_DIM) {
       const scale = MAX_BUFFER_DIM / maxDim
