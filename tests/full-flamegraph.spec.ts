@@ -139,6 +139,32 @@ test.describe('FullFlameGraph Component', () => {
       // May or may not show stack details
       expect(hasStack).toBeDefined()
     })
+
+    test('stack details container height is not the same as flamegraph height', async ({ page }) => {
+      const utils = new FlameGraphTestUtils(page)
+      await utils.navigateToTest({ fullFlameGraph: true })
+
+      const container = page.locator('[data-testid="full-flamegraph-container"]')
+      const canvas = container.locator('canvas').first()
+
+      const canvasBoundingBox = await canvas.boundingBox()
+
+      expect(canvasBoundingBox).not.toBeNull()
+
+      const canvasHeight = canvasBoundingBox!.height
+
+      await canvas.click({ position: { x: 200, y: 50 } })
+      await page.waitForTimeout(1000)
+
+      const stackDetailsOverlay = container.locator('.stack-details-container')
+      await expect(stackDetailsOverlay).toBeVisible()
+
+      const stackDetailsOverlayBoundingBox = await stackDetailsOverlay.boundingBox()
+      expect(stackDetailsOverlayBoundingBox).not.toBeNull()
+
+      // Ensure that the Stack Details within the FullFlameGraph is not the same height.
+      expect(stackDetailsOverlayBoundingBox!.height).not.toBe(canvasHeight)
+    })
   })
 
   test.describe('Performance', () => {
