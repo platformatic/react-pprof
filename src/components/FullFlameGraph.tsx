@@ -388,10 +388,14 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
             top: 0,
             right: 0,
             width: '400px',
-            height: '100%',
+            height: 'auto',
+            // The 112px here is based off of the other hard coded px values of
+            // the header and control elements in order to limit the height of
+            // this element to always be constrained within the viewport.
+            maxHeight: 'calc(100vh - 112px)',
+            overflowY: 'scroll',
             backgroundColor: `${backgroundColor}F0`,
             boxShadow: '-4px 0 12px rgba(0, 0, 0, 0.3)',
-            overflow: 'hidden',  // Changed from overflowY: 'auto' to prevent double scrollbars
             zIndex: 10,
             boxSizing: 'border-box',  // Include padding in width calculation
           }}>
