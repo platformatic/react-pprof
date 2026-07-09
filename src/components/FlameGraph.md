@@ -27,6 +27,7 @@ The FlameGraph component renders performance profiling data from Go's pprof form
 | `scrollZoomSpeed` | `number` | `0.05` | Speed of scroll zoom |
 | `scrollZoomInverted` | `boolean` | `false` | Invert scroll zoom direction |
 | `selectedFrameId` | `string \| null` | - | ID of the currently selected frame |
+| `highlightedFrameIds` | `string[] \| null` | - | IDs of frames to highlight (e.g. search matches); matches render at full opacity, other frames are dimmed. `null` clears the highlight |
 | `onFrameClick` | `function` | - | Callback when a frame is clicked |
 | `onZoomChange` | `function` | - | Callback when zoom level changes |
 | `onAnimationComplete` | `function` | - | Callback when animations complete |

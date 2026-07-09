@@ -21,6 +21,7 @@ export interface FlameGraphProps {
   scrollZoomSpeed?: number
   scrollZoomInverted?: boolean
   selectedFrameId?: string | null
+  highlightedFrameIds?: string[] | null
   showAppCodeOnly?: boolean
   onFrameClick?: (frame: FrameData | null, stackTrace: FlameNode[], children: FlameNode[]) => void
   onZoomChange?: (zoomLevel: number) => void
@@ -45,6 +46,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
   scrollZoomSpeed = 0.05,
   scrollZoomInverted = false,
   selectedFrameId,
+  highlightedFrameIds,
   showAppCodeOnly = false,
   onFrameClick,
   onZoomChange: _onZoomChange,
@@ -133,6 +135,12 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
 
         renderer.render()
 
+        // Re-apply any active highlight (e.g. search matches) since the
+        // renderer was just recreated
+        if (highlightedFrameIds !== undefined) {
+          renderer.setHighlightedFrames(highlightedFrameIds)
+        }
+
         // Update scrollable and pannable state when renderer changes
         setCanPan(renderer.canPan())
 
@@ -178,6 +186,13 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
       rendererRef.current.render()
     }
   }, [selectedFrameId, hoveredFrame])
+
+  // Handle external frame highlighting (e.g. search matches)
+  useEffect(() => {
+    if (rendererRef.current && highlightedFrameIds !== undefined) {
+      rendererRef.current.setHighlightedFrames(highlightedFrameIds)
+    }
+  }, [highlightedFrameIds])
 
   useEffect(() => {
     if (rendererRef.current && canvasRef.current && containerRef.current) {

@@ -4,6 +4,7 @@ import { FrameData, FlameNode, detectProfileMetadata, FlameGraphRenderer } from 
 import { HottestFramesBar, type FrameWithSelfTime } from './HottestFramesBar.js'
 import { HottestFramesControls } from './HottestFramesControls.js'
 import { FilterControls } from './FilterControls.js'
+import { SearchControls } from './SearchControls.js'
 import { FrameDetails } from './FrameDetails.js'
 import { FlameGraph } from './FlameGraph.js'
 import { StackDetails } from './StackDetails.js'
@@ -18,6 +19,7 @@ export interface FullFlameGraphProps {
   fontFamily?: string
   showHottestFrames?: boolean
   showControls?: boolean
+  showSearch?: boolean
   showFrameDetails?: boolean
   showStackDetails?: boolean
   hottestFramesHeight?: number
@@ -34,6 +36,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
   showHottestFrames = true,
   showControls = true,
+  showSearch = true,
   showFrameDetails = false,
   showStackDetails = true,
   hottestFramesHeight = 10,
@@ -45,6 +48,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   const [stackTrace, setStackTrace] = useState<any[]>([])
   const [frameChildren, setFrameChildren] = useState<any[]>([])
   const [showAppCodeOnly, setShowAppCodeOnly] = useState(showAppCodeOnlyProp)
+  const [highlightedFrameIds, setHighlightedFrameIds] = useState<string[] | null>(null)
 
   // Reference to FlameGraph's renderer
   const flameGraphRef = useRef<{ rendererRef: React.RefObject<FlameGraphRenderer> }>(null)
@@ -195,6 +199,10 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
       // Use the correct value index from profile metadata
       const valueIndex = profileMetadata?.sampleTypeIndex ?? 0
 
+      // pprof-format wraps the string table in a StringTable object; fall
+      // back to treating it as a plain array for pre-decoded profiles
+      const stringTable: string[] = (profile?.stringTable as any)?.strings ?? (profile?.stringTable as any) ?? []
+
       // Process each sample in the profile
       if (profile && profile.sample) {
         profile.sample.forEach((sample: any) => {
@@ -207,26 +215,33 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           root.sampleCount += 1  // Count each sample
           
           // Build the stack for this sample
-          const stack: string[] = []
+          const stack: Array<{ name: string, fileName?: string, lineNumber?: number }> = []
           sample.locationId.forEach((locationId: any) => {
             const location = profile.location?.find((loc: any) => loc.id === locationId)
             if (location && location.line && location.line.length > 0) {
-              const func = profile.function?.find((f: any) => f.id === location.line?.[0]?.functionId)
+              const line = location.line[0]
+              const func = profile.function?.find((f: any) => f.id === line?.functionId)
               if (func) {
                 const nameIndex = Number(func.name)
-                const funcName = (profile.stringTable as any)?.[nameIndex] || `func_${func.id}`
-                stack.push(funcName)
+                const funcName = stringTable[nameIndex] || `func_${func.id}`
+                const fileIndex = Number(func.filename)
+                stack.push({
+                  name: funcName,
+                  fileName: stringTable[fileIndex],
+                  lineNumber: line?.line ? Number(line.line) : undefined
+                })
               }
             }
           })
-          
+
           // Traverse/create the tree based on the stack
-          stack.reverse().forEach((funcName, depth) => {
+          stack.reverse().forEach((frame, depth) => {
+            const funcName = frame.name
             let child = currentNode.children.find(c => c.name === funcName)
             if (!child) {
-              const nodeId = currentNode.id === 'root'
-                ? funcName
-                : `${currentNode.id}/${funcName}`
+              // Match the renderer's node ID scheme (root/parent/child) so
+              // selections resolve against frameMap and the flame graph
+              const nodeId = `${currentNode.id}/${funcName}`
               child = {
                 id: nodeId,
                 name: funcName,
@@ -238,7 +253,9 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
                 depth: depth + 1,
                 x: 0,
                 width: 0,
-                selfWidth: 0
+                selfWidth: 0,
+                fileName: frame.fileName,
+                lineNumber: frame.lineNumber
               }
               currentNode.children.push(child)
             }
@@ -327,7 +344,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
         </div>
       )}
 
-      {(showControls || showFrameDetails) && (
+      {(showControls || showSearch || showFrameDetails) && (
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -336,19 +353,32 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           minHeight: '40px',
           gap: '16px',
         }}>
-          {showControls && (
+          {(showControls || showSearch) && (
             <div style={{ flex: '0 0 auto', display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <HottestFramesControls
-                profile={profile}
-                selectedFrame={selectedFrame}
-                onFrameSelect={handleFrameSelection}
-                textColor={textColor}
-              />
-              <FilterControls
-                showAppCodeOnly={showAppCodeOnly}
-                onToggle={setShowAppCodeOnly}
-                textColor={textColor}
-              />
+              {showControls && (
+                <>
+                  <HottestFramesControls
+                    profile={profile}
+                    selectedFrame={selectedFrame}
+                    onFrameSelect={handleFrameSelection}
+                    textColor={textColor}
+                  />
+                  <FilterControls
+                    showAppCodeOnly={showAppCodeOnly}
+                    onToggle={setShowAppCodeOnly}
+                    textColor={textColor}
+                  />
+                </>
+              )}
+              {showSearch && (
+                <SearchControls
+                  frames={allFramesFlat}
+                  selectedFrame={selectedFrame}
+                  onFrameSelect={handleFrameSelection}
+                  onMatchesChange={setHighlightedFrameIds}
+                  textColor={textColor}
+                />
+              )}
             </div>
           )}
 
@@ -377,6 +407,7 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           textColor={textColor}
           fontFamily={fontFamily}
           selectedFrameId={selectedFrameId}
+          highlightedFrameIds={highlightedFrameIds}
           showAppCodeOnly={showAppCodeOnly}
           onFrameClick={handleFrameSelection}
         />
