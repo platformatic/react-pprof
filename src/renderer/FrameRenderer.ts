@@ -33,7 +33,8 @@ export class FrameRenderer {
     selectedOpacity: number,
     hoverOpacity: number,
     unselectedOpacity: number,
-    camera: { x: number; y: number; scale: number }
+    camera: { x: number; y: number; scale: number },
+    highlightedFrameIds: Set<string> | null = null
   ): Map<string, number> {
     const gl = this.#webgl.getContext()
     const frameProgram = this.#webgl.getProgram()
@@ -101,6 +102,16 @@ export class FrameRenderer {
         opacity = selectedOpacity
       } else if (node.id === hoveredFrameId) {
         opacity = hoverOpacity
+      }
+
+      // When a highlight set is active (e.g. search matches), matching
+      // frames render at full opacity and everything else is dimmed
+      if (highlightedFrameIds) {
+        if (highlightedFrameIds.has(node.id) || node.id === selectedFrameId) {
+          opacity = selectedOpacity
+        } else {
+          opacity = unselectedOpacity * 0.3
+        }
       }
 
       // Store for text rendering

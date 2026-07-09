@@ -5,6 +5,7 @@ export { FlameGraphTooltip, type FlameGraphTooltipProps } from './components/Fla
 export { HottestFramesBar, type HottestFramesBarProps } from './components/HottestFramesBar.js'
 export { HottestFramesControls, type HottestFramesControlsProps } from './components/HottestFramesControls.js'
 export { FrameDetails, type FrameDetailsProps } from './components/FrameDetails.js'
+export { SearchControls, type SearchControlsProps } from './components/SearchControls.js'
 export { FullFlameGraph, type FullFlameGraphProps } from './components/FullFlameGraph.js'
 export { fetchProfile, type Profile } from './parser.js'
 

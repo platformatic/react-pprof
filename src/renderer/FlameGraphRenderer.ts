@@ -37,6 +37,7 @@ export class FlameGraphRenderer {
   // Frame states
   #selectedFrameId: string | null = null
   #hoveredFrameId: string | null = null
+  #highlightedFrameIds: Set<string> | null = null
 
   // Animation
   #animationFrame: number | null = null
@@ -205,6 +206,15 @@ export class FlameGraphRenderer {
   }
 
   /**
+   * Set the frames to highlight (e.g. search matches).
+   * Pass null to clear the highlight and restore normal opacities.
+   */
+  setHighlightedFrames(frameIds: string[] | null): void {
+    this.#highlightedFrameIds = frameIds ? new Set(frameIds) : null
+    this.render()
+  }
+
+  /**
    * Set height mode for zoom behavior
    */
   setHeightMode(isFixedHeight: boolean): void {
@@ -348,7 +358,8 @@ export class FlameGraphRenderer {
       this.#selectedOpacity,
       this.#hoverOpacity,
       this.#unselectedOpacity,
-      cameraState
+      cameraState,
+      this.#highlightedFrameIds
     )
 
     // Borders are now handled as insets in frame rendering, no separate border pass needed

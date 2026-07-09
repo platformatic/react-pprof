@@ -52,6 +52,7 @@ function App() {
       height={600}
       showHottestFrames={true}
       showControls={true}
+      showSearch={true}
       showStackDetails={true}
     />
   )

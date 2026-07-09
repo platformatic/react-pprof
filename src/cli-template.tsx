@@ -47,6 +47,7 @@ window.renderReactPprofFlameGraph = (containerId: string, options) => {
         textColor={TEXT_COLOR}
         showHottestFrames={true}
         showControls={true}
+        showSearch={true}
         showStackDetails={true}
         hottestFramesHeight={12}
       />
