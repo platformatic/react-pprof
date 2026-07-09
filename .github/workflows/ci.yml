@@ -30,6 +30,7 @@ jobs:
           - parser
           - performance
           - responsive-design
+          - search-controls
           - stack-details
           - theme-consistency
           - visual-regression
