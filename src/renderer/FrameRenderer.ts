@@ -33,7 +33,8 @@ export class FrameRenderer {
     selectedOpacity: number,
     hoverOpacity: number,
     unselectedOpacity: number,
-    camera: { x: number; y: number; scale: number }
+    camera: { x: number; y: number; scale: number },
+    deoptColor: [number, number, number] | null = null
   ): Map<string, number> {
     const gl = this.#webgl.getContext()
     const frameProgram = this.#webgl.getProgram()
@@ -58,6 +59,10 @@ export class FrameRenderer {
     // Build vertex data
     const positions: number[] = []
     const colors: number[] = []
+
+    // Deopt markers are drawn after all frames so they sit on top
+    const markerPositions: number[] = []
+    const markerColors: number[] = []
 
     // Track colors and opacities for text rendering
     const frameColors = new Map<string, [number, number, number]>()
@@ -122,7 +127,23 @@ export class FrameRenderer {
       for (let i = 0; i < 6; i++) {
         colors.push(color[0], color[1], color[2], opacity)
       }
+
+      if (deoptColor && node.deopts && node.deopts.actionable > 0) {
+        this.#addDeoptMarker(
+          markerPositions,
+          markerColors,
+          node.deopts.actionable,
+          deoptColor,
+          screenX1 + borderInsetX,
+          screenY1 + borderInsetY,
+          screenX2 - borderInsetX,
+          screenY2 - borderInsetY
+        )
+      }
     }
+
+    positions.push(...markerPositions)
+    colors.push(...markerColors)
 
     if (positions.length === 0) {
       return frameOpacities
@@ -173,6 +194,58 @@ export class FrameRenderer {
     gl.disable(gl.BLEND)
 
     return frameOpacities
+  }
+
+  /**
+   * Add a deopt marker for a frame: a bar along the bottom edge (visible even
+   * on narrow frames) and, when there is room, a triangle in the top-right
+   * corner. Marker strength grows with the number of deopts.
+   */
+  #addDeoptMarker(
+    positions: number[],
+    colors: number[],
+    count: number,
+    color: [number, number, number],
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ): void {
+    const width = x2 - x1
+    const height = y2 - y1
+    if (width <= 0 || height <= 0) {
+      return
+    }
+
+    // 1 deopt -> 0.6, 1000+ deopts -> 1.0
+    const alpha = 0.6 + 0.4 * Math.min(1, Math.log10(count) / 3)
+
+    // Bottom bar
+    const barTop = y2 - Math.min(2, height / 4)
+    positions.push(
+      x1, barTop,
+      x2, barTop,
+      x1, y2,
+      x2, barTop,
+      x2, y2,
+      x1, y2
+    )
+    for (let i = 0; i < 6; i++) {
+      colors.push(color[0], color[1], color[2], alpha)
+    }
+
+    // Corner triangle
+    const size = Math.min(8, height - 2, width / 2)
+    if (size >= 4) {
+      positions.push(
+        x2 - size, y1,
+        x2, y1,
+        x2, y1 + size
+      )
+      for (let i = 0; i < 3; i++) {
+        colors.push(color[0], color[1], color[2], alpha)
+      }
+    }
   }
 
   /**

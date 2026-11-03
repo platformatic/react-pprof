@@ -4,3 +4,4 @@ export { HottestFramesBar, type HottestFramesBarProps, type FrameWithSelfTime, u
 export { HottestFramesControls, type HottestFramesControlsProps } from './HottestFramesControls.js'
 export { FrameDetails, type FrameDetailsProps } from './FrameDetails.js'
 export { FullFlameGraph, type FullFlameGraphProps } from './FullFlameGraph.js'
+export { DeoptDetails, type DeoptDetailsProps } from './DeoptDetails.js'

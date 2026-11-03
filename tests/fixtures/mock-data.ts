@@ -329,3 +329,37 @@ export function generateMockProfileWithBigIntValues(): Profile {
     period: 10000000, // 10ms
   })
 }
+
+/**
+ * Attach a V8 deopt payload to a mock profile, as @platformatic/flame does.
+ * `db.Query` gets actionable deopts, `json.Marshal` only tiering events.
+ */
+export function addMockDeopts(profile: Profile): Profile {
+  const payload = {
+    type: 'v8-deopts',
+    version: 1,
+    functions: [
+      {
+        name: 'db.Query',
+        file: 'database/query.go',
+        line: 120,
+        deopts: [
+          { reason: 'wrong map', bailoutType: 'deopt-eager', count: 340, position: 'database/query.go:130:12' },
+          { reason: 'dependent prototype chain changed', bailoutType: 'dependency-change', count: 2, position: 'database/query.go:121:3' },
+          { reason: 'prepare for on stack replacement (OSR)', bailoutType: 'deopt-eager', count: 5, position: 'database/query.go:125:5' }
+        ]
+      },
+      {
+        name: 'json.Marshal',
+        file: 'encoding/json/encode.go',
+        line: 160,
+        deopts: [
+          { reason: 'Insufficient type feedback for call', bailoutType: 'deopt-eager', count: 3, position: 'encoding/json/encode.go:170:7' }
+        ]
+      }
+    ]
+  }
+  const index = profile.stringTable.dedup(JSON.stringify(payload))
+  profile.comment = [...(profile.comment || []), index]
+  return profile
+}

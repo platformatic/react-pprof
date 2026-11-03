@@ -7,6 +7,7 @@ export interface FlameGraphTooltipProps {
   mouseY: number
   fontFamily?: string
   profileMetadata?: ProfileMetadata
+  showDeopts?: boolean
 }
 
 export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
@@ -14,11 +15,15 @@ export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
   mouseX,
   mouseY,
   fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif',
-  profileMetadata
+  profileMetadata,
+  showDeopts = true
 }) => {
+  const deopts = showDeopts ? frameData.deopts : undefined
+  const topDeopts = deopts ? deopts.deopts.slice(0, 3) : []
+
   const calculateTooltipPosition = (mouseX: number, mouseY: number) => {
     const tooltipWidth = 250
-    const tooltipHeight = 120
+    const tooltipHeight = 120 + (topDeopts.length > 0 ? 30 + topDeopts.length * 16 : 0)
     const offset = 10
 
     // Get viewport dimensions
@@ -98,6 +103,22 @@ export const FlameGraphTooltip: React.FC<FlameGraphTooltipProps> = ({
         <span style={{ color: '#666', fontSize: '11px' }}>Depth:</span>
         <span style={{ marginLeft: '8px', fontWeight: '500' }}>{frameData.depth}</span>
       </div>
+      {deopts && topDeopts.length > 0 && (
+        <div className="flamegraph-tooltip-deopts" style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
+          <div style={{ marginBottom: '4px' }}>
+            <span style={{ color: '#666', fontSize: '11px' }}>Deopts:</span>
+            <span style={{ marginLeft: '8px', fontWeight: '500' }}>{deopts.total}</span>
+            {deopts.actionable !== deopts.total && (
+              <span style={{ marginLeft: '4px', color: '#999', fontSize: '10px' }}>({deopts.actionable} actionable)</span>
+            )}
+          </div>
+          {topDeopts.map((deopt, i) => (
+            <div key={i} style={{ fontSize: '11px', color: deopt.category === 'actionable' ? '#000' : '#999' }}>
+              {deopt.count}× {deopt.reason}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

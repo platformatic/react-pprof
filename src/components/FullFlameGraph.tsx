@@ -7,6 +7,8 @@ import { FilterControls } from './FilterControls.js'
 import { FrameDetails } from './FrameDetails.js'
 import { FlameGraph } from './FlameGraph.js'
 import { StackDetails } from './StackDetails.js'
+import { DeoptDetails } from './DeoptDetails.js'
+import { createDeoptIndex } from '../deopts/index.js'
 
 export interface FullFlameGraphProps {
   profile: Profile
@@ -22,6 +24,10 @@ export interface FullFlameGraphProps {
   showStackDetails?: boolean
   hottestFramesHeight?: number
   showAppCodeOnly?: boolean
+  /** Highlight frames with V8 deoptimizations, when the profile carries deopt data */
+  showDeopts?: boolean
+  /** Color of deopt markers */
+  deoptColor?: string
 }
 
 export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
@@ -38,6 +44,8 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   showStackDetails = true,
   hottestFramesHeight = 10,
   showAppCodeOnly: showAppCodeOnlyProp = false,
+  showDeopts: showDeoptsProp = true,
+  deoptColor = '#3fa9ff',
 }) => {
   const [selectedFrame, setSelectedFrame] = useState<FrameData | null>(null)
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null)
@@ -45,6 +53,10 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
   const [stackTrace, setStackTrace] = useState<any[]>([])
   const [frameChildren, setFrameChildren] = useState<any[]>([])
   const [showAppCodeOnly, setShowAppCodeOnly] = useState(showAppCodeOnlyProp)
+  const [showDeopts, setShowDeopts] = useState(showDeoptsProp)
+
+  // Deopt data embedded in the profile (null if there is none)
+  const deoptIndex = useMemo(() => createDeoptIndex(profile), [profile])
 
   // Reference to FlameGraph's renderer
   const flameGraphRef = useRef<{ rendererRef: React.RefObject<FlameGraphRenderer> }>(null)
@@ -294,6 +306,19 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
     return allNodes
   }, [profile, profileMetadata])
 
+  // Deopts for the selected frame. Frames coming from the hottest frames bar
+  // are built separately, so fall back to looking them up by identity.
+  const selectedDeopts = useMemo(() => {
+    if (!showDeopts || !deoptIndex || !selectedFrame) {
+      return undefined
+    }
+    return selectedFrame.deopts ?? deoptIndex.lookup(
+      selectedFrame.functionName || selectedFrame.name,
+      selectedFrame.fileName,
+      selectedFrame.lineNumber
+    )
+  }, [showDeopts, deoptIndex, selectedFrame])
+
   // Find the current frame based on selection
   const currentFrame = frames.find(f => selectedFrame && f.nodeId === selectedFrame.id)
 
@@ -347,6 +372,8 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
               <FilterControls
                 showAppCodeOnly={showAppCodeOnly}
                 onToggle={setShowAppCodeOnly}
+                showDeopts={showDeopts}
+                onToggleDeopts={deoptIndex ? setShowDeopts : undefined}
                 textColor={textColor}
               />
             </div>
@@ -378,6 +405,8 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           fontFamily={fontFamily}
           selectedFrameId={selectedFrameId}
           showAppCodeOnly={showAppCodeOnly}
+          showDeopts={showDeopts}
+          deoptColor={deoptColor}
           onFrameClick={handleFrameSelection}
         />
 
@@ -431,6 +460,12 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
               height: '100%',
               boxSizing: 'border-box'
             }}>
+              <DeoptDetails
+                deopts={selectedDeopts}
+                textColor={textColor}
+                deoptColor={deoptColor}
+                fontFamily={fontFamily}
+              />
               <StackDetails
                 selectedFrame={selectedFrame}
                 stackTrace={stackTrace}
@@ -449,6 +484,16 @@ export const FullFlameGraph: React.FC<FullFlameGraphProps> = ({
           </div>
         )}
       </div>
+
+      {/* Without the overlay, show deopts below the graph */}
+      {!showStackDetails && selectedDeopts && (
+        <DeoptDetails
+          deopts={selectedDeopts}
+          textColor={textColor}
+          deoptColor={deoptColor}
+          fontFamily={fontFamily}
+        />
+      )}
     </div>
   )
 }

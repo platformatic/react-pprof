@@ -29,6 +29,10 @@ export class FlameGraphRenderer {
   #secondaryColor = [1, 0.8, 0.4]; // #ffcc66
   #backgroundColor = [0.12, 0.12, 0.12]; // #1e1e1e
 
+  // Deopt markers
+  #showDeopts = true
+  #deoptColor: [number, number, number] = [0.25, 0.66, 1]; // #3fa9ff
+
   // Opacity settings
   #selectedOpacity = 1.0
   #hoverOpacity = 0.9
@@ -130,6 +134,16 @@ export class FlameGraphRenderer {
     // Update text renderer with new color (only if WebGL is available)
     if (this.#webgl.getContext()) {
       this.#textRenderer.setTextColor(textColor)
+    }
+  }
+
+  /**
+   * Show or hide deoptimization markers on frames
+   */
+  setShowDeopts(show: boolean, color?: string): void {
+    this.#showDeopts = show
+    if (color) {
+      this.#deoptColor = hexToRgb(color) as [number, number, number]
     }
   }
 
@@ -348,7 +362,8 @@ export class FlameGraphRenderer {
       this.#selectedOpacity,
       this.#hoverOpacity,
       this.#unselectedOpacity,
-      cameraState
+      cameraState,
+      this.#showDeopts ? this.#deoptColor : null
     )
 
     // Borders are now handled as insets in frame rendering, no separate border pass needed

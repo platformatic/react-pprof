@@ -316,6 +316,7 @@ This package provides several React components for visualizing pprof profiles. C
 ### Utility Components
 
 - **[FlameGraphTooltip](src/components/FlameGraphTooltip.md)** - Tooltip component for displaying frame information on hover
+- **DeoptDetails** - List of V8 deoptimizations for a frame, with an explanation of each reason (see [V8 Deoptimizations](#v8-deoptimizations))
 
 ### Getting Started
 
@@ -338,6 +339,7 @@ interface FrameData {
   functionName: string; // Function name (same as name)
   fileName?: string;    // Source file name
   lineNumber?: number;  // Source line number
+  deopts?: FrameDeoptSummary; // V8 deoptimizations, when the profile carries them
 }
 ```
 
@@ -357,8 +359,60 @@ interface FlameNode {
   depth: number;       // Stack depth (0 = root)
   fileName?: string;    // Source file name
   lineNumber?: number;  // Source line number
+  deopts?: FrameDeoptSummary; // V8 deoptimizations, when the profile carries them
 }
 ```
+
+## V8 Deoptimizations
+
+Profiles can carry V8 deoptimization data, for example the ones produced by
+[`@platformatic/flame`](https://github.com/platformatic/flame) with `--deopt`.
+When they do:
+
+- frames with actionable deopts get a marker (a bar along the bottom edge and a
+  triangle in the top-right corner); the marker gets stronger as the count grows
+- the hover tooltip shows the deopt count and the most frequent reasons
+- the details panel lists every deopt for the selected frame, with its position
+  and an explanation of the reason
+- `FullFlameGraph` shows a **Highlight Deopts** checkbox next to **Show App Code Only**
+
+Use `showDeopts` (default `true`) and `deoptColor` (default `#3fa9ff`) on
+`<FlameGraph />` and `<FullFlameGraph />` to control the markers.
+
+Tiering events (`prepare for on stack replacement (OSR)`, `Insufficient type
+feedback for ...`) and engine-internal events happen in almost every program,
+so they don't get markers and are collapsed in the details panel.
+
+### Payload format
+
+The data is stored as a JSON string in the profile's `comment` field (a list of
+string table indices in the pprof format, ignored by other pprof tools):
+
+```json
+{
+  "type": "v8-deopts",
+  "version": 1,
+  "functions": [
+    {
+      "name": "read",
+      "file": "/app/lib/read.js",
+      "line": 12,
+      "deopts": [
+        { "reason": "wrong map", "bailoutType": "deopt-eager", "count": 340, "position": "/app/lib/read.js:14:20" }
+      ]
+    }
+  ]
+}
+```
+
+`name`, `file` and `line` (the function's start line) must match the profile's
+function table. `reason` is the message V8 writes in `code-deopt` log records.
+Explanations come from a catalog of V8's 84 deopt reasons derived from
+[deoptigate's deoptimization guide](https://github.com/Uzlopak/deoptigate/blob/59e854d5cabfe2f9698246c985ad21f3a820b0b8/assets/deoptimization.md)
+(MIT); unknown reasons are shown without an explanation.
+
+The helpers are exported too: `createDeoptIndex(profile)`, `extractDeoptPayload(profile)`,
+`getDeoptCategory(reason)`, `getDeoptReasonInfo(reason)` and `DEOPT_REASONS`.
 
 ## Theming
 

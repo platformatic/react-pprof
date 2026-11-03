@@ -20,6 +20,8 @@ export class FlameGraphTestUtils {
     prePopulateStackDetails?: boolean;
     heapProfile?: boolean;
     bigIntProfile?: boolean;
+    deopts?: boolean;
+    deoptDetails?: boolean;
   }) {
     const params = new URLSearchParams()
     if (config?.mode) {params.set('mode', config.mode)}
@@ -33,6 +35,8 @@ export class FlameGraphTestUtils {
     if (config?.prePopulateStackDetails) {params.set('prePopulateStackDetails', 'true')}
     if (config?.heapProfile) {params.set('heapProfile', 'true')}
     if (config?.bigIntProfile) {params.set('bigIntProfile', 'true')}
+    if (config?.deopts) {params.set('deopts', 'true')}
+    if (config?.deoptDetails) {params.set('deoptDetails', 'true')}
 
     const baseUrl = 'http://localhost:3100'
     const url = `${baseUrl}?${params.toString()}`

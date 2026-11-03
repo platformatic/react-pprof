@@ -9,7 +9,9 @@ import { FrameDetails } from '../../../src/components/FrameDetails'
 import { FullFlameGraph } from '../../../src/components/FullFlameGraph'
 import { FlameNode, FrameData, FlameDataProcessor, detectProfileMetadata } from '../../../src/renderer'
 import { fetchProfile } from '../../../src/parser'
-import { generateMockProfile, generateMockHeapProfile, generateMockProfileWithBigIntValues } from '../mock-data'
+import { DeoptDetails } from '../../../src/components/DeoptDetails'
+import { createDeoptIndex, extractDeoptPayload, getDeoptCategory, getDeoptReasonInfo } from '../../../src/deopts'
+import { generateMockProfile, generateMockHeapProfile, generateMockProfileWithBigIntValues, addMockDeopts } from '../mock-data'
 
 // Expose components globally for testing
 declare global {
@@ -17,10 +19,12 @@ declare global {
     fetchProfile: typeof fetchProfile
     FlameGraphTooltip: typeof FlameGraphTooltip
     waitForAnimationComplete: () => Promise<void>
+    deoptTest: Record<string, any>
   }
 }
 window.fetchProfile = fetchProfile
 window.FlameGraphTooltip = FlameGraphTooltip
+window.deoptTest = { createDeoptIndex, extractDeoptPayload, getDeoptCategory, getDeoptReasonInfo, FlameDataProcessor }
 
 // Global promise resolver for animation completion
 let animationCompleteResolver: (() => void) | null = null
@@ -67,6 +71,9 @@ const TestApp: React.FC = () => {
   const prePopulateStackDetails = params.get('prePopulateStackDetails') === 'true'
   const useHeapProfile = params.get('heapProfile') === 'true'
   const useBigIntProfile = params.get('bigIntProfile') === 'true'
+  const useDeopts = params.get('deopts') === 'true'
+  const showDeoptDetails = params.get('deoptDetails') === 'true'
+  const showDeoptTooltip = params.get('deoptTooltip') === 'true'
 
   // Generate consistent mock profile for testing
   const testProfile = useMemo(() => {
@@ -87,8 +94,34 @@ const TestApp: React.FC = () => {
     const profile = useHeapProfile ? generateMockHeapProfile() : generateMockProfile()
     Math.random = originalRandom
 
-    return profile
-  }, [useHeapProfile, useBigIntProfile])
+    return useDeopts ? addMockDeopts(profile) : profile
+  }, [useHeapProfile, useBigIntProfile, useDeopts])
+
+  // Expose the profile so tests can run pure logic against it
+  window.deoptTest.profile = testProfile
+
+  const deoptIndex = useMemo(() => createDeoptIndex(testProfile), [testProfile])
+
+  // First db.Query node, used to render a tooltip with deopts
+  const dbQueryNode = useMemo(() => {
+    if (!showDeoptTooltip) {
+      return null
+    }
+    const root = new FlameDataProcessor().processProfile(testProfile)
+    const find = (node: FlameNode): FlameNode | null => {
+      if (node.name === 'db.Query') {
+        return node
+      }
+      for (const child of node.children) {
+        const found = find(child)
+        if (found) {
+          return found
+        }
+      }
+      return null
+    }
+    return find(root)
+  }, [showDeoptTooltip, testProfile])
 
   // Detect profile metadata for use in components
   const profileMetadata = useMemo(() => detectProfileMetadata(testProfile), [testProfile])
@@ -252,6 +285,21 @@ const TestApp: React.FC = () => {
             backgroundColor={config.backgroundColor}
             textColor={config.textColor}
             fontFamily={config.fontFamily}
+          />
+        </div>
+      )}
+
+      {dbQueryNode && (
+        <div data-testid="deopt-tooltip-container">
+          <FlameGraphTooltip frameData={dbQueryNode} mouseX={10} mouseY={10} />
+        </div>
+      )}
+
+      {showDeoptDetails && (
+        <div style={{ width: '400px' }} data-testid="deopt-details-container">
+          <DeoptDetails
+            deopts={deoptIndex?.lookup('db.Query', 'database/query.go', 120)}
+            textColor={config.textColor}
           />
         </div>
       )}

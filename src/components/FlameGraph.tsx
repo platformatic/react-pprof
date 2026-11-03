@@ -22,6 +22,10 @@ export interface FlameGraphProps {
   scrollZoomInverted?: boolean
   selectedFrameId?: string | null
   showAppCodeOnly?: boolean
+  /** Draw markers on frames with actionable V8 deoptimizations (when the profile carries deopt data) */
+  showDeopts?: boolean
+  /** Color of deopt markers */
+  deoptColor?: string
   onFrameClick?: (frame: FrameData | null, stackTrace: FlameNode[], children: FlameNode[]) => void
   onZoomChange?: (zoomLevel: number) => void
   onAnimationComplete?: () => void
@@ -46,6 +50,8 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
   scrollZoomInverted = false,
   selectedFrameId,
   showAppCodeOnly = false,
+  showDeopts = true,
+  deoptColor = '#3fa9ff',
   onFrameClick,
   onZoomChange: _onZoomChange,
   onAnimationComplete,
@@ -95,6 +101,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
         renderer.setFramePadding(framePadding)
         renderer.setFontFamily(fontFamily)
         renderer.setShadowOpacity(shadowOpacity)
+        renderer.setShowDeopts(showDeopts, deoptColor)
         renderer.setScrollZoom(zoomOnScroll, scrollZoomSpeed, scrollZoomInverted, () => {
           setCanPan(renderer.canPan())
         })
@@ -169,6 +176,13 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
       rendererRef.current.render()
     }
   }, [shadowOpacity])
+
+  useEffect(() => {
+    if (rendererRef.current) {
+      rendererRef.current.setShowDeopts(showDeopts, deoptColor)
+      rendererRef.current.render()
+    }
+  }, [showDeopts, deoptColor])
 
   // Handle external frame selection
   useEffect(() => {
@@ -508,6 +522,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
             functionName: parentFrame.name,
             fileName: parentFrame.fileName,
             lineNumber: parentFrame.lineNumber,
+            deopts: parentFrame.deopts,
             totalValue: parentFrame.value
           },
           stackTrace,
@@ -564,6 +579,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
           functionName: firstChild.name,
           fileName: firstChild.fileName,
           lineNumber: firstChild.lineNumber,
+          deopts: firstChild.deopts,
           totalValue: firstChild.value
         },
         stackTrace,
@@ -627,6 +643,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
           functionName: nextSibling.name,
           fileName: nextSibling.fileName,
           lineNumber: nextSibling.lineNumber,
+          deopts: nextSibling.deopts,
           totalValue: nextSibling.value
         },
         stackTrace,
@@ -690,6 +707,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
           functionName: prevSibling.name,
           fileName: prevSibling.fileName,
           lineNumber: prevSibling.lineNumber,
+          deopts: prevSibling.deopts,
           totalValue: prevSibling.value
         },
         stackTrace,
@@ -855,6 +873,7 @@ export const FlameGraph = forwardRef<{ rendererRef: React.RefObject<FlameGraphRe
           mouseX={mousePosition.x}
           mouseY={mousePosition.y}
           fontFamily={fontFamily}
+          showDeopts={showDeopts}
           profileMetadata={rendererRef.current?.profileMetadata || undefined}
         />
       )}

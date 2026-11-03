@@ -195,6 +195,7 @@ export class InteractionHandler {
           functionName: clickedFrame.name,
           fileName: clickedFrame.fileName,
           lineNumber: clickedFrame.lineNumber,
+          deopts: clickedFrame.deopts,
           totalValue: this.#calculateTotalValue(clickedFrame)
         },
         stackTrace,

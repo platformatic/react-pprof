@@ -1,6 +1,7 @@
 import { Profile } from 'pprof-format'
 import { ProfileMetadata, detectProfileMetadata } from './ProfileMetadata.js'
 import { filterAndRecalculate } from '../utils/frameFilters.js'
+import { DeoptIndex, FrameDeoptSummary, createDeoptIndex } from '../deopts/index.js'
 
 // FlameNode and FrameData types belong here since this class owns them
 export interface FlameNode {
@@ -18,6 +19,7 @@ export interface FlameNode {
   selfWidth: number
   fileName?: string
   lineNumber?: number
+  deopts?: FrameDeoptSummary
 }
 
 export interface FrameData {
@@ -34,12 +36,13 @@ export interface FrameData {
   lineNumber?: number
   totalValue: number
   sampleCount?: number
+  deopts?: FrameDeoptSummary
 }
 
 interface PprofSample {
   stack: string[]
   value: number
-  locations?: Array<{functionName: string; filename?: string; line?: number}>
+  locations?: Array<{functionName: string; filename?: string; line?: number; startLine?: number}>
 }
 
 interface ParsedProfile {
@@ -54,6 +57,7 @@ export class FlameDataProcessor {
   #data: FlameNode | null = null
   #framePadding = 5
   #profileMetadata: ProfileMetadata | null = null
+  #deoptIndex: DeoptIndex | null = null
 
   /**
    * Convert Profile to FlameNode structure
@@ -61,6 +65,7 @@ export class FlameDataProcessor {
   processProfile(profile: Profile, showAppCodeOnly: boolean = false): FlameNode {
     // Detect profile metadata first
     this.#profileMetadata = detectProfileMetadata(profile)
+    this.#deoptIndex = createDeoptIndex(profile)
     const rawData = this.#profileToFlameGraph(profile)
 
     // Apply filtering if requested
@@ -81,6 +86,13 @@ export class FlameDataProcessor {
    */
   getProfileMetadata(): ProfileMetadata | null {
     return this.#profileMetadata
+  }
+
+  /**
+   * Get the deopt index, if the profile carries deopt data
+   */
+  getDeoptIndex(): DeoptIndex | null {
+    return this.#deoptIndex
   }
 
   /**
@@ -251,7 +263,8 @@ export class FlameDataProcessor {
         locations.set(location.id.toString(), {
           functionName: func?.name || `loc_${location.id}`,
           filename: func?.filename,
-          line: Number(line.line || 0)
+          line: Number(line.line || 0),
+          startLine: func?.startLine || undefined
         })
       }
     }
@@ -266,7 +279,7 @@ export class FlameDataProcessor {
 
         // Build stack trace from location IDs
         const stack: string[] = []
-        const locationDetails: Array<{functionName: string; filename?: string; line?: number}> = []
+        const locationDetails: Array<{functionName: string; filename?: string; line?: number; startLine?: number}> = []
 
         for (const locId of sample.locationId) {
           const location = locations.get(locId.toString())
@@ -341,6 +354,17 @@ export class FlameDataProcessor {
             parent: currentParent,
             fileName: location?.filename,
             lineNumber: location?.line
+          }
+
+          // Deopt data identifies functions by their start line; prefer it
+          // over the sampled line when the profile provides it
+          const deopts = this.#deoptIndex?.lookup(
+            functionName,
+            location?.filename,
+            location?.startLine || location?.line
+          )
+          if (deopts) {
+            node.deopts = deopts
           }
 
           nodeMap.set(nodeId, node)
